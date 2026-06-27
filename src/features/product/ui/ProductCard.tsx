@@ -8,7 +8,7 @@ export function ProductCard({ product }: { product: Product }) {
     <article data-testid="product-card" className="group flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-surface">
         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-          <ImagePlaceholder name={product.name} />
+          <ImagePlaceholder name={product.name} src={product.thumbnailKey} />
         </div>
       </div>
       <div className="mt-4 space-y-1">

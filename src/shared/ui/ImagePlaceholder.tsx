@@ -1,11 +1,30 @@
 import { cn } from "@/shared/lib/utils";
 
 /**
- * 상품/드롭 이미지 영역의 공통 플레이스홀더.
- * 실제 thumbnail 연결 전까지 웜 그라데이션 + 큰 세리프 이니셜로 "의도된 빈자리"를 채운다.
- * thumbnail 이 생기면 이 자리를 <img> 로 교체.
+ * 상품/드롭 이미지 영역.
+ * - `src`(thumbnail) 가 있으면 실제 이미지(cover)로 렌더.
+ * - 없으면 웜 그라데이션 + 큰 세리프 이니셜의 "의도된 빈자리".
  */
-export function ImagePlaceholder({ name, className }: { name: string; className?: string }) {
+export function ImagePlaceholder({
+  name,
+  src,
+  className,
+}: {
+  name: string;
+  src?: string | null;
+  className?: string;
+}) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        loading="lazy"
+        className={cn("h-full w-full object-cover", className)}
+      />
+    );
+  }
+
   const initial = name.trim().charAt(0) || "?";
   return (
     <div

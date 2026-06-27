@@ -2,8 +2,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { routeTree } from "@/routeTree.gen";
+import { setAccessTokenProvider } from "@/shared/api/http";
 import { queryClient } from "./queryClient";
+
+// 인증 HTTP 헬퍼에 토큰 게터 주입(shared ↔ auth 피처 분리).
+setAccessTokenProvider(() => useAuthStore.getState().accessToken);
 
 const router = createRouter({
   routeTree,

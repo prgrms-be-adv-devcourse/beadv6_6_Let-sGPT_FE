@@ -13,7 +13,7 @@ export function DropCard({ drop }: { drop: DropCardModel }) {
     <article data-testid="drop-card" className="group flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-surface">
         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-          <ImagePlaceholder name={drop.productName} />
+          <ImagePlaceholder name={drop.productName} src={drop.thumbnailKey} />
         </div>
         <DropStatusBadge status={drop.status} className="absolute top-3 left-3" />
       </div>
