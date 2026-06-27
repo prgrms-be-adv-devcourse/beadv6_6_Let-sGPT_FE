@@ -13,6 +13,11 @@ function AuthActions() {
   if (member) {
     return (
       <>
+        {member.role === "ROLE_ADMIN" ? (
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to="/admin">관리자</Link>
+          </Button>
+        ) : null}
         <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
           <Link to="/orders">주문</Link>
         </Button>

@@ -29,9 +29,14 @@ export function SellerSection() {
         <div className="flex items-center justify-between gap-4">
           <h3 className="font-medium">내 판매자 정보</h3>
           {sellers.data && sellers.data.length > 0 ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/seller/products">상품 관리</Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/seller/settlements">정산 내역</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/seller/products">상품 관리</Link>
+              </Button>
+            </div>
           ) : null}
         </div>
         {sellers.isPending ? (

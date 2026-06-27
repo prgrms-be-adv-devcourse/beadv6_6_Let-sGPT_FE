@@ -16,9 +16,13 @@ import { Route as IndexRouteImport } from "./routes/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
 import { Route as OrdersIndexRouteImport } from "./routes/orders/index";
 import { Route as DropsIndexRouteImport } from "./routes/drops/index";
+import { Route as AdminIndexRouteImport } from "./routes/admin/index";
+import { Route as SellerSettlementsRouteImport } from "./routes/seller/settlements";
 import { Route as ProductsIdRouteImport } from "./routes/products/$id";
 import { Route as DropsIdRouteImport } from "./routes/drops/$id";
 import { Route as CheckoutOrderIdRouteImport } from "./routes/checkout/$orderId";
+import { Route as AdminSettlementsRouteImport } from "./routes/admin/settlements";
+import { Route as AdminCategoriesRouteImport } from "./routes/admin/categories";
 import { Route as SellerProductsIndexRouteImport } from "./routes/seller/products/index";
 import { Route as OrdersOrderIdIndexRouteImport } from "./routes/orders/$orderId/index";
 import { Route as SellerProductsNewRouteImport } from "./routes/seller/products/new";
@@ -60,6 +64,16 @@ const DropsIndexRoute = DropsIndexRouteImport.update({
   path: "/drops/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: "/admin/",
+  path: "/admin/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SellerSettlementsRoute = SellerSettlementsRouteImport.update({
+  id: "/seller/settlements",
+  path: "/seller/settlements",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const ProductsIdRoute = ProductsIdRouteImport.update({
   id: "/products/$id",
   path: "/products/$id",
@@ -73,6 +87,16 @@ const DropsIdRoute = DropsIdRouteImport.update({
 const CheckoutOrderIdRoute = CheckoutOrderIdRouteImport.update({
   id: "/checkout/$orderId",
   path: "/checkout/$orderId",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminSettlementsRoute = AdminSettlementsRouteImport.update({
+  id: "/admin/settlements",
+  path: "/admin/settlements",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: "/admin/categories",
+  path: "/admin/categories",
   getParentRoute: () => rootRouteImport,
 } as any);
 const SellerProductsIndexRoute = SellerProductsIndexRouteImport.update({
@@ -106,9 +130,13 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginRoute;
   "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
+  "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/settlements": typeof AdminSettlementsRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
+  "/seller/settlements": typeof SellerSettlementsRoute;
+  "/admin/": typeof AdminIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/orders/": typeof OrdersIndexRoute;
   "/products/": typeof ProductsIndexRoute;
@@ -123,9 +151,13 @@ export interface FileRoutesByTo {
   "/login": typeof LoginRoute;
   "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
+  "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/settlements": typeof AdminSettlementsRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
+  "/seller/settlements": typeof SellerSettlementsRoute;
+  "/admin": typeof AdminIndexRoute;
   "/drops": typeof DropsIndexRoute;
   "/orders": typeof OrdersIndexRoute;
   "/products": typeof ProductsIndexRoute;
@@ -141,9 +173,13 @@ export interface FileRoutesById {
   "/login": typeof LoginRoute;
   "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
+  "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/settlements": typeof AdminSettlementsRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
+  "/seller/settlements": typeof SellerSettlementsRoute;
+  "/admin/": typeof AdminIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/orders/": typeof OrdersIndexRoute;
   "/products/": typeof ProductsIndexRoute;
@@ -160,9 +196,13 @@ export interface FileRouteTypes {
     | "/login"
     | "/mypage"
     | "/signup"
+    | "/admin/categories"
+    | "/admin/settlements"
     | "/checkout/$orderId"
     | "/drops/$id"
     | "/products/$id"
+    | "/seller/settlements"
+    | "/admin/"
     | "/drops/"
     | "/orders/"
     | "/products/"
@@ -177,9 +217,13 @@ export interface FileRouteTypes {
     | "/login"
     | "/mypage"
     | "/signup"
+    | "/admin/categories"
+    | "/admin/settlements"
     | "/checkout/$orderId"
     | "/drops/$id"
     | "/products/$id"
+    | "/seller/settlements"
+    | "/admin"
     | "/drops"
     | "/orders"
     | "/products"
@@ -194,9 +238,13 @@ export interface FileRouteTypes {
     | "/login"
     | "/mypage"
     | "/signup"
+    | "/admin/categories"
+    | "/admin/settlements"
     | "/checkout/$orderId"
     | "/drops/$id"
     | "/products/$id"
+    | "/seller/settlements"
+    | "/admin/"
     | "/drops/"
     | "/orders/"
     | "/products/"
@@ -212,9 +260,13 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute;
   MypageRoute: typeof MypageRoute;
   SignupRoute: typeof SignupRoute;
+  AdminCategoriesRoute: typeof AdminCategoriesRoute;
+  AdminSettlementsRoute: typeof AdminSettlementsRoute;
   CheckoutOrderIdRoute: typeof CheckoutOrderIdRoute;
   DropsIdRoute: typeof DropsIdRoute;
   ProductsIdRoute: typeof ProductsIdRoute;
+  SellerSettlementsRoute: typeof SellerSettlementsRoute;
+  AdminIndexRoute: typeof AdminIndexRoute;
   DropsIndexRoute: typeof DropsIndexRoute;
   OrdersIndexRoute: typeof OrdersIndexRoute;
   ProductsIndexRoute: typeof ProductsIndexRoute;
@@ -276,6 +328,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DropsIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/admin/": {
+      id: "/admin/";
+      path: "/admin";
+      fullPath: "/admin/";
+      preLoaderRoute: typeof AdminIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/seller/settlements": {
+      id: "/seller/settlements";
+      path: "/seller/settlements";
+      fullPath: "/seller/settlements";
+      preLoaderRoute: typeof SellerSettlementsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/products/$id": {
       id: "/products/$id";
       path: "/products/$id";
@@ -295,6 +361,20 @@ declare module "@tanstack/react-router" {
       path: "/checkout/$orderId";
       fullPath: "/checkout/$orderId";
       preLoaderRoute: typeof CheckoutOrderIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/settlements": {
+      id: "/admin/settlements";
+      path: "/admin/settlements";
+      fullPath: "/admin/settlements";
+      preLoaderRoute: typeof AdminSettlementsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/categories": {
+      id: "/admin/categories";
+      path: "/admin/categories";
+      fullPath: "/admin/categories";
+      preLoaderRoute: typeof AdminCategoriesRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/seller/products/": {
@@ -340,9 +420,13 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MypageRoute: MypageRoute,
   SignupRoute: SignupRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminSettlementsRoute: AdminSettlementsRoute,
   CheckoutOrderIdRoute: CheckoutOrderIdRoute,
   DropsIdRoute: DropsIdRoute,
   ProductsIdRoute: ProductsIdRoute,
+  SellerSettlementsRoute: SellerSettlementsRoute,
+  AdminIndexRoute: AdminIndexRoute,
   DropsIndexRoute: DropsIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,

@@ -24,7 +24,7 @@
 - **공용**: `shared/api/http.ts`(`apiFetch`), `pagination`, `shared/ui`(button/card/input/label/form/sheet/ImagePlaceholder/FilterChip/Pagination/CatalogLayout).
 - **피처(model/api/queries)**: auth(member: signup/login/refresh/logout/me/update + `authStore`), product(목록/상세 API), drop(provisional 목록/상세), category(provisional), order(생성/조회/목록/취소), payment(결제/확인/환불/지갑충전/이력), seller(판매자정보 CRUD). queries 미작성 피처는 api 위에 훅만 추가하면 됨.
 - **목**: `src/mocks/data/`(categories 6종, products 16종 **실이미지 thumbnailKey=picsum**, drops 10종, `mockDb` 상태저장) + `handlers/`(product/drop/category/member/seller/order/payment) — **주문→결제(WALLET 즉시/PG confirm)→완료→환불→지갑** 흐름이 목에서 일관 동작. 테스트 격리는 `resetMockDb`(setup afterEach).
-- 검증: typecheck/lint/**test 22개**/build green.
+- 검증: typecheck/lint/**test 27개**/build green.
 
 ## 남은 화면 (구현 순서 권장: 고객 플로우 → 판매자/관리자)
 | # | 라우트(제안) | 핵심 BE | 메모 |
@@ -36,12 +36,14 @@
 | ~~08 주문 목록~~ | `/orders` | `GET /api/v1/orders?status&page&size` | ✅ 완료 |
 | ~~09 주문 상세~~ | `/orders/$orderId` | `GET /orders/{id}` + `POST /orders/{id}/cancel` | ✅ 완료 |
 | ~~10 마이페이지~~ | `/mypage` | `GET /members/me`·`PATCH`, `GET /wallet`·`/wallet/charge`, `/refunds/histories`, `GET/POST /seller/me` | ✅ 완료(좌측 탭: 내정보/주문/지갑/환불/판매자) |
-| 14 상품 등록 | `/seller/products/new` | `POST /auth/token`(scoped)→`POST /api/v1/products` | **scoped 토큰 교환 흐름** 필요. `ProductCreateRequest` 필드 BE 재확인 |
-| 12 상품 관리 | `/seller/products` | `GET /products?...`(내 sellerId 필터) | 판매자 콘솔 레이아웃 |
-| 13 상품 관리 상세 | `/seller/products/$id` | `PATCH/DELETE /products/{id}` + `POST /drops` | 수정/삭제 + **드롭 생성**(productId, dropPrice, totalQuantity, limitPerUser?, openAt, closeAt?) |
-| 15 카테고리 관리 | `/admin/categories` | `POST/PATCH/DELETE /categories` | 목록은 provisional `GET /categories` |
-| 11 관리자 | `/admin` | (집계 — 정산/통계) | 대시보드 |
-| 16 정산 | `/seller/settlements`·`/admin/settlements` | `GET /settlements/seller|admin/*` | 표/페이징, 정산월 필터, admin `retry-failed` |
+| ~~14 상품 등록~~ | `/seller/products/new` | `POST /auth/token`(scoped)→`POST /products` | ✅ 완료 |
+| ~~12 상품 관리~~ | `/seller/products` | `GET /products/me`(provisional) | ✅ 완료 |
+| ~~13 상품 관리 상세~~ | `/seller/products/$id` | `PATCH/DELETE /products/{id}` + `POST /drops` | ✅ 완료(수정/삭제 + 드롭 생성) |
+| ~~15 카테고리 관리~~ | `/admin/categories` | `POST/PATCH/DELETE /categories` | ✅ 완료(목록 provisional) |
+| ~~11 관리자~~ | `/admin` | (대시보드) | ✅ 완료(카테고리·정산 메뉴) |
+| ~~16 정산~~ | `/seller/settlements`·`/admin/settlements` | `GET /settlements/{seller\|admin}/*` | ✅ 완료(판매자/주문 탭·월·상태 필터·admin retry-failed) |
+
+**모든 와이어프레임 화면(01~16) 구현 완료.** 남은 작업: 최종 BE TODO(fe-api) 마커 점검 + README/AGENTS 갱신(task 20).
 
 ## 핵심 주의(품질 유지 포인트)
 - **strict/exactOptionalPropertyTypes**: 선택 객체 prop은 `...(x ? {x} : {})` 패턴, optional prop 타입은 필요시 `T | undefined` 명시. `verbatimModuleSyntax` → `import type` 정확히.

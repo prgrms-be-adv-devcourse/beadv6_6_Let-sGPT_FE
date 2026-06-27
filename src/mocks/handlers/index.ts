@@ -5,6 +5,7 @@ import { orderHandlers } from "./order.handlers";
 import { paymentHandlers } from "./payment.handlers";
 import { productHandlers } from "./product.handlers";
 import { sellerHandlers } from "./seller.handlers";
+import { settlementHandlers } from "./settlement.handlers";
 
 export const handlers = [
   ...productHandlers,
@@ -14,4 +15,5 @@ export const handlers = [
   ...sellerHandlers,
   ...orderHandlers,
   ...paymentHandlers,
+  ...settlementHandlers,
 ];
