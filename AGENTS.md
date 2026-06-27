@@ -3,7 +3,7 @@
 별도 Spring BE(MSA)의 API를 소비하는 React SPA(플랫폼 **openAt** · 팀 Let'sGPT). 구현은 에이전트가 검증 루프를 돌며 수행한다.
 상세 배경/근거는 `docs/frontend-harness-guide.md`, **디자인 지침은 `docs/design-system.md`**, 화면 정의는 `screens/`.
 
-> **전체 화면 구현이 진행 중이다.** "이어서 진행" 요청 시 반드시 **`docs/PROGRESS.md`(진행 상태·다음 단계·작업 절차) → `docs/be-api-contract.md`(BE 계약)** 를 먼저 읽고 그 절차/규칙대로 다음 화면을 구현·커밋한다.
+> **와이어프레임 전 화면(01~16) 1차 구현 완료.** 이어서 작업할 땐 반드시 **`docs/PROGRESS.md`(진행 상태·작업 절차) → `docs/be-api-contract.md`(BE 계약)** 를 먼저 읽고 그 절차/규칙대로 구현·커밋한다. 미구현 BE 조회 API 는 provisional(MSW) + `// TODO(fe-api)` 마커로 처리되어 있다(`product/docs/FE_API_REQUESTS.md` 인덱스).
 
 ## 0. 불명확하면 멈추고 질문하라
 가정으로 진행하지 말 것. 요구·계약·화면이 모호하면 코드 생성 전에 질문한다.

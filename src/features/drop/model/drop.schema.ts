@@ -14,6 +14,8 @@ export const dropCardSchema = z.object({
   id: z.string(),
   productId: z.string(),
   productName: z.string(),
+  // TODO(fe-api): BE DropResponse 에 판매자 표시명(storeName) 포함 필요 → 카탈로그/상세 벤더 표기. (provisional)
+  sellerName: z.string().nullish(),
   categoryId: z.string().nullable(),
   categoryName: z.string().nullable(),
   thumbnailKey: z.string().nullable(),

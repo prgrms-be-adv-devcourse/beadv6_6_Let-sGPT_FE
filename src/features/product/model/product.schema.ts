@@ -8,6 +8,9 @@ import { pageResponseSchema } from "@/shared/api/pagination";
 export const productSchema = z.object({
   id: z.string(),
   sellerId: z.string(),
+  // TODO(fe-api): BE ProductResponse 에 판매자 표시명(storeName)이 없음 → 카탈로그/상세 벤더 표기에 필요.
+  //   nullish 로 두어 실제 BE 응답(미포함)도 통과. 현재는 MSW provisional 로 채움.
+  sellerName: z.string().nullish(),
   name: z.string(),
   description: z.string(),
   categoryId: z.string().nullable(),

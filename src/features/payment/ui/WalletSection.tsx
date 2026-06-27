@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
-import { FilterChip } from "@/shared/ui/FilterChip";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { useChargeWallet, useWalletBalance } from "../api/payments.queries";
 
 const CHARGE_PRESETS = [10_000, 30_000, 50_000, 100_000];
@@ -17,19 +17,23 @@ export function WalletSection() {
     <div className="space-y-8">
       <div className="rounded-lg border bg-card p-6">
         <p className="text-muted-foreground text-xs uppercase tracking-[0.18em]">Balance</p>
-        <p className="mt-2 font-serif text-4xl tracking-tight tabular-nums">
+        <p className="mt-2 font-numeric text-4xl tracking-tight tabular-nums">
           {balance.isPending ? "—" : formatKrw(balance.data?.balance ?? 0)}
         </p>
       </div>
 
       <div className="space-y-4">
         <h3 className="font-medium">충전</h3>
-        <div className="flex flex-wrap gap-2">
-          {CHARGE_PRESETS.map((preset) => (
-            <FilterChip key={preset} active={amount === preset} onClick={() => setAmount(preset)}>
-              {formatKrw(preset)}
-            </FilterChip>
-          ))}
+        <div className="overflow-x-auto">
+          <SegmentedControl
+            aria-label="충전 금액"
+            options={CHARGE_PRESETS.map((preset) => ({
+              value: String(preset),
+              label: formatKrw(preset),
+            }))}
+            value={String(amount)}
+            onChange={(value) => setAmount(Number(value))}
+          />
         </div>
         <Button
           disabled={charge.isPending}

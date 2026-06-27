@@ -83,6 +83,7 @@ export const dropHandlers = [
       id,
       productId: product.id,
       productName: product.name,
+      sellerName: product.sellerName ?? null,
       categoryId: product.categoryId,
       categoryName: product.categoryName,
       thumbnailKey: product.thumbnailKey,

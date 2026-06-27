@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { FilterChip } from "@/shared/ui/FilterChip";
+import { MenuSelect } from "@/shared/ui/MenuSelect";
+import { MonthPicker } from "@/shared/ui/MonthPicker";
 import { Pagination } from "@/shared/ui/Pagination";
 import type { SettlementScope } from "../api/settlements.api";
 import {
@@ -12,19 +14,6 @@ import {
 } from "../api/settlements.queries";
 
 const PAGE_SIZE = 10;
-const MONTHS = [
-  { value: "", label: "전체 월" },
-  { value: "202606", label: "2026.06" },
-  { value: "202605", label: "2026.05" },
-  { value: "202604", label: "2026.04" },
-];
-
-const controlClass =
-  "h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40";
-
-function formatMonth(yyyymm: string): string {
-  return `${yyyymm.slice(0, 4)}.${yyyymm.slice(4)}`;
-}
 
 const STATUS_LABEL: Record<string, string> = {
   READY: "대기",
@@ -32,23 +21,76 @@ const STATUS_LABEL: Record<string, string> = {
   FAILED: "실패",
 };
 
+const SELLER_STATUS_OPTIONS = [
+  { value: "", label: "전체 상태" },
+  { value: "READY", label: "대기" },
+  { value: "COMPLETED", label: "완료" },
+  { value: "FAILED", label: "실패" },
+];
+const ORDER_STATUS_OPTIONS = [
+  { value: "", label: "전체 상태" },
+  { value: "READY", label: "대기" },
+  { value: "COMPLETED", label: "완료" },
+];
+
+const TABS = [
+  { value: "sellers", label: "판매자 정산" },
+  { value: "orders", label: "주문별 정산" },
+] as const;
+
+function formatMonth(yyyymm: string): string {
+  return `${yyyymm.slice(0, 4)}.${yyyymm.slice(4)}`;
+}
+
+/** 정산 상태 펠릿 — 소프트 틴티드(완료=뉴트럴 / 대기=뮤트 / 실패=destructive). */
 function StatusBadge({ status }: { status: string }) {
   const tone =
     status === "FAILED"
-      ? "border-destructive/40 text-destructive"
+      ? "bg-destructive/10 text-destructive"
       : status === "COMPLETED"
-        ? "border-foreground/30 text-foreground"
-        : "border-border text-muted-foreground";
+        ? "bg-foreground/[0.06] text-foreground"
+        : "bg-muted text-muted-foreground";
   return (
-    <span className={`rounded-full border px-2 py-0.5 text-xs ${tone}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 font-medium text-xs leading-none ${tone}`}
+    >
       {STATUS_LABEL[status] ?? status}
     </span>
   );
 }
 
+/** KPI 요약 카드(현재 결과 합계) — 헤드라인 숫자는 카드, 상세는 테이블(2026 핀테크 패턴). */
+function SummaryCards({ items }: { items: { label: string; value: number }[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {items.map((item) => (
+        <div key={item.label} className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-[0.7rem] text-muted-foreground uppercase tracking-[0.16em]">
+            {item.label}
+          </p>
+          <p className="mt-2 font-numeric text-2xl tracking-tight tabular-nums">
+            {formatKrw(item.value)}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TableShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border">
+      <table className="w-full text-sm">{children}</table>
+    </div>
+  );
+}
+
+const thClass = "px-4 py-3 text-left font-medium text-[0.7rem] uppercase tracking-[0.12em]";
+const tdClass = "px-4 py-3.5";
+
 type Tab = "sellers" | "orders";
 
-/** 정산 조회 — 판매자/관리자 공용. 판매자·월 집계 + 주문 단위 탭, 월·상태 필터, 페이징. */
+/** 정산 조회 — 판매자/관리자 공용. 세그먼트 탭 + 모던 필터 + KPI 카드 + 클린 테이블. */
 export function SettlementPanel({ scope }: { scope: SettlementScope }) {
   const [tab, setTab] = useState<Tab>("sellers");
   const [month, setMonth] = useState("");
@@ -65,9 +107,6 @@ export function SettlementPanel({ scope }: { scope: SettlementScope }) {
   const orders = useSettlementOrders(scope, filter);
   const retry = useRetryFailedSettlements();
 
-  const statusOptions =
-    tab === "sellers" ? ["", "READY", "COMPLETED", "FAILED"] : ["", "READY", "COMPLETED"];
-
   function resetPageAnd(setter: () => void) {
     setter();
     setPage(0);
@@ -80,41 +119,47 @@ export function SettlementPanel({ scope }: { scope: SettlementScope }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <FilterChip
-          active={tab === "sellers"}
-          onClick={() => resetPageAnd(() => setTab("sellers"))}
-        >
-          판매자 정산
-        </FilterChip>
-        <FilterChip active={tab === "orders"} onClick={() => resetPageAnd(() => setTab("orders"))}>
-          주문별 정산
-        </FilterChip>
+      <div
+        role="tablist"
+        aria-label="정산 구분"
+        className="flex items-center gap-8 border-border border-b"
+      >
+        {TABS.map((item) => {
+          const active = tab === item.value;
+          return (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => resetPageAnd(() => setTab(item.value))}
+              className={cn(
+                "-mb-px border-b-2 pb-3 text-sm transition-colors",
+                active
+                  ? "border-foreground font-medium text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-border border-y py-3">
-        <select
-          className={controlClass}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-border border-b pb-4">
+        <MonthPicker
+          aria-label="정산 월"
+          align="left"
           value={month}
-          onChange={(event) => resetPageAnd(() => setMonth(event.target.value))}
-        >
-          {MONTHS.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className={controlClass}
+          onChange={(value) => resetPageAnd(() => setMonth(value))}
+        />
+        <MenuSelect
+          aria-label="상태"
+          align="left"
+          options={tab === "sellers" ? SELLER_STATUS_OPTIONS : ORDER_STATUS_OPTIONS}
           value={status}
-          onChange={(event) => resetPageAnd(() => setStatus(event.target.value))}
-        >
-          {statusOptions.map((value) => (
-            <option key={value || "all"} value={value}>
-              {value ? STATUS_LABEL[value] : "전체 상태"}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => resetPageAnd(() => setStatus(value))}
+        />
         {hasFailed ? (
           <Button
             variant="outline"
@@ -128,19 +173,13 @@ export function SettlementPanel({ scope }: { scope: SettlementScope }) {
         ) : null}
       </div>
 
-      {tab === "sellers" ? <SellerTable query={sellers} page={page} onPage={setPage} /> : null}
-      {tab === "orders" ? <OrderTable query={orders} page={page} onPage={setPage} /> : null}
+      {tab === "sellers" ? <SellerView query={sellers} page={page} onPage={setPage} /> : null}
+      {tab === "orders" ? <OrderView query={orders} page={page} onPage={setPage} /> : null}
     </div>
   );
 }
 
-type QueryLike<T> = {
-  isPending: boolean;
-  isError: boolean;
-  data?: { content: T[]; totalPages: number } | undefined;
-};
-
-function TableState({ query }: { query: QueryLike<unknown> }) {
+function EmptyOrError({ query }: { query: { isPending: boolean; isError: boolean } }) {
   if (query.isPending) {
     return <p className="py-12 text-center text-muted-foreground text-sm">불러오는 중…</p>;
   }
@@ -152,7 +191,7 @@ function TableState({ query }: { query: QueryLike<unknown> }) {
   return <p className="py-12 text-center text-muted-foreground text-sm">정산 내역이 없습니다.</p>;
 }
 
-function SellerTable({
+function SellerView({
   query,
   page,
   onPage,
@@ -162,57 +201,66 @@ function SellerTable({
   onPage: (page: number) => void;
 }) {
   if (!query.data || query.data.content.length === 0) {
-    return <TableState query={query} />;
+    return <EmptyOrError query={query} />;
   }
+  const content = query.data.content;
+  const sum = (pick: (item: (typeof content)[number]) => number) =>
+    content.reduce((total, item) => total + pick(item), 0);
+
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-muted-foreground text-xs">
-            <tr className="border-border border-b text-left">
-              <th className="py-2 pr-4 font-medium">정산월</th>
-              <th className="py-2 pr-4 text-right font-medium">주문수</th>
-              <th className="py-2 pr-4 text-right font-medium">결제액</th>
-              <th className="py-2 pr-4 text-right font-medium">수수료</th>
-              <th className="py-2 pr-4 text-right font-medium">환불</th>
-              <th className="py-2 pr-4 text-right font-medium">최종 정산액</th>
-              <th className="py-2 font-medium">상태</th>
+    <div className="space-y-6">
+      <SummaryCards
+        items={[
+          { label: "결제액 합계", value: sum((item) => item.totalPaidAmount) },
+          { label: "수수료 합계", value: sum((item) => item.totalFeeAmount) },
+          { label: "최종 정산액", value: sum((item) => item.finalSettlementAmount) },
+        ]}
+      />
+      <TableShell>
+        <thead className="border-border border-b bg-surface/60 text-muted-foreground">
+          <tr>
+            <th className={thClass}>정산월</th>
+            <th className={`${thClass} text-right`}>주문수</th>
+            <th className={`${thClass} text-right`}>결제액</th>
+            <th className={`${thClass} text-right`}>수수료</th>
+            <th className={`${thClass} text-right`}>환불</th>
+            <th className={`${thClass} text-right`}>최종 정산액</th>
+            <th className={thClass}>상태</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {content.map((item) => (
+            <tr key={item.id} className="transition-colors hover:bg-surface/40">
+              <td className={`${tdClass} tabular-nums`}>{formatMonth(item.settlementMonth)}</td>
+              <td className={`${tdClass} text-right tabular-nums`}>{item.totalOrderCount}</td>
+              <td className={`${tdClass} text-right tabular-nums`}>
+                {formatKrw(item.totalPaidAmount)}
+              </td>
+              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+                {formatKrw(item.totalFeeAmount)}
+              </td>
+              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+                {formatKrw(item.totalRefundAmount)}
+              </td>
+              <td className={`${tdClass} text-right font-medium tabular-nums`}>
+                {formatKrw(item.finalSettlementAmount)}
+              </td>
+              <td className={tdClass}>
+                <StatusBadge status={item.status} />
+                {item.failReason ? (
+                  <p className="mt-1 text-destructive text-xs">{item.failReason}</p>
+                ) : null}
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {query.data.content.map((item) => (
-              <tr key={item.id}>
-                <td className="py-3 pr-4 tabular-nums">{formatMonth(item.settlementMonth)}</td>
-                <td className="py-3 pr-4 text-right tabular-nums">{item.totalOrderCount}</td>
-                <td className="py-3 pr-4 text-right tabular-nums">
-                  {formatKrw(item.totalPaidAmount)}
-                </td>
-                <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                  {formatKrw(item.totalFeeAmount)}
-                </td>
-                <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                  {formatKrw(item.totalRefundAmount)}
-                </td>
-                <td className="py-3 pr-4 text-right font-medium tabular-nums">
-                  {formatKrw(item.finalSettlementAmount)}
-                </td>
-                <td className="py-3">
-                  <StatusBadge status={item.status} />
-                  {item.failReason ? (
-                    <p className="mt-1 text-destructive text-xs">{item.failReason}</p>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </TableShell>
       <Pagination page={page} totalPages={query.data.totalPages} onPageChange={onPage} />
     </div>
   );
 }
 
-function OrderTable({
+function OrderView({
   query,
   page,
   onPage,
@@ -222,48 +270,57 @@ function OrderTable({
   onPage: (page: number) => void;
 }) {
   if (!query.data || query.data.content.length === 0) {
-    return <TableState query={query} />;
+    return <EmptyOrError query={query} />;
   }
+  const content = query.data.content;
+  const sum = (pick: (item: (typeof content)[number]) => number) =>
+    content.reduce((total, item) => total + pick(item), 0);
+
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-muted-foreground text-xs">
-            <tr className="border-border border-b text-left">
-              <th className="py-2 pr-4 font-medium">정산월</th>
-              <th className="py-2 pr-4 font-medium">주문</th>
-              <th className="py-2 pr-4 text-right font-medium">결제액</th>
-              <th className="py-2 pr-4 text-right font-medium">수수료</th>
-              <th className="py-2 pr-4 text-right font-medium">환불</th>
-              <th className="py-2 pr-4 text-right font-medium">순정산액</th>
-              <th className="py-2 font-medium">상태</th>
+    <div className="space-y-6">
+      <SummaryCards
+        items={[
+          { label: "결제액 합계", value: sum((item) => item.paidAmount) },
+          { label: "수수료 합계", value: sum((item) => item.feeAmount) },
+          { label: "순정산액 합계", value: sum((item) => item.netSettlementAmount) },
+        ]}
+      />
+      <TableShell>
+        <thead className="border-border border-b bg-surface/60 text-muted-foreground">
+          <tr>
+            <th className={thClass}>정산월</th>
+            <th className={thClass}>주문</th>
+            <th className={`${thClass} text-right`}>결제액</th>
+            <th className={`${thClass} text-right`}>수수료</th>
+            <th className={`${thClass} text-right`}>환불</th>
+            <th className={`${thClass} text-right`}>순정산액</th>
+            <th className={thClass}>상태</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {content.map((item) => (
+            <tr key={item.id} className="transition-colors hover:bg-surface/40">
+              <td className={`${tdClass} tabular-nums`}>{formatMonth(item.settlementMonth)}</td>
+              <td className={`${tdClass} font-mono text-muted-foreground text-xs`}>
+                {item.orderId}
+              </td>
+              <td className={`${tdClass} text-right tabular-nums`}>{formatKrw(item.paidAmount)}</td>
+              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+                {formatKrw(item.feeAmount)}
+              </td>
+              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+                {formatKrw(item.refundAmount)}
+              </td>
+              <td className={`${tdClass} text-right font-medium tabular-nums`}>
+                {formatKrw(item.netSettlementAmount)}
+              </td>
+              <td className={tdClass}>
+                <StatusBadge status={item.status} />
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {query.data.content.map((item) => (
-              <tr key={item.id}>
-                <td className="py-3 pr-4 tabular-nums">{formatMonth(item.settlementMonth)}</td>
-                <td className="py-3 pr-4 font-mono text-muted-foreground text-xs">
-                  {item.orderId}
-                </td>
-                <td className="py-3 pr-4 text-right tabular-nums">{formatKrw(item.paidAmount)}</td>
-                <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                  {formatKrw(item.feeAmount)}
-                </td>
-                <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
-                  {formatKrw(item.refundAmount)}
-                </td>
-                <td className="py-3 pr-4 text-right font-medium tabular-nums">
-                  {formatKrw(item.netSettlementAmount)}
-                </td>
-                <td className="py-3">
-                  <StatusBadge status={item.status} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </TableShell>
       <Pagination page={page} totalPages={query.data.totalPages} onPageChange={onPage} />
     </div>
   );

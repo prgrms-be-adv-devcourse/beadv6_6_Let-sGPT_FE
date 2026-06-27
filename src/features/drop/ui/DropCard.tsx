@@ -1,7 +1,7 @@
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import type { DropCard as DropCardModel } from "../model/drop.schema";
-import { DropStatusBadge } from "./DropStatusBadge";
+import { DropStatusPill } from "./DropStatusPill";
 import { StockBar } from "./StockBar";
 
 /** 드롭 1건을 표현하는 이미지 우선 에디토리얼 카드(데이터 페칭 없음). */
@@ -15,7 +15,9 @@ export function DropCard({ drop }: { drop: DropCardModel }) {
         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
           <ImagePlaceholder name={drop.productName} src={drop.thumbnailKey} />
         </div>
-        <DropStatusBadge status={drop.status} className="absolute top-3 left-3" />
+        <span className="absolute top-3 left-3 rounded-full bg-background/85 px-2.5 py-1 backdrop-blur">
+          <DropStatusPill status={drop.status} />
+        </span>
       </div>
       <div className="mt-4 flex flex-1 flex-col gap-3">
         <div className="space-y-1">

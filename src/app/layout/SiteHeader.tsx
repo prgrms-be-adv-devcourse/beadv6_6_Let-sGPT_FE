@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { SellerSwitcher } from "@/features/seller/ui/SellerSwitcher";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 
 const navLinkClass =
   "text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground";
@@ -13,20 +16,32 @@ function AuthActions() {
   if (member) {
     return (
       <>
+        {member.role === "ROLE_SELLER" ? <SellerSwitcher /> : null}
         {member.role === "ROLE_ADMIN" ? (
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/admin">관리자</Link>
-          </Button>
+          <Link to="/admin" className={cn(navLinkClass, "hidden sm:inline")}>
+            Admin
+          </Link>
         ) : null}
-        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-          <Link to="/orders">주문</Link>
-        </Button>
-        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-          <Link to="/mypage">{member.nickname}</Link>
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => clear()}>
-          로그아웃
-        </Button>
+        <Link to="/orders" className={cn(navLinkClass, "hidden sm:inline")}>
+          Orders
+        </Link>
+        <Link
+          to="/mypage"
+          className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+        >
+          {member.nickname}
+        </Link>
+        <ConfirmDialog
+          trigger={
+            <Button variant="ghost" size="sm">
+              로그아웃
+            </Button>
+          }
+          title="로그아웃"
+          description="정말 로그아웃하시겠어요?"
+          confirmLabel="로그아웃"
+          onConfirm={() => clear()}
+        />
       </>
     );
   }
@@ -40,20 +55,6 @@ function AuthActions() {
         <Link to="/signup">회원가입</Link>
       </Button>
     </>
-  );
-}
-
-function SellerSelect() {
-  // TODO(fe-api): 판매자 목록 조회(member 도메인) — 헤더 판매자 필터. 현재는 비활성 플레이스홀더. [screens/01-home]
-  return (
-    <select
-      aria-label="판매자 선택"
-      defaultValue=""
-      disabled
-      className="hidden h-9 border-0 bg-transparent text-muted-foreground text-sm sm:block"
-    >
-      <option value="">전체 판매자</option>
-    </select>
   );
 }
 
@@ -73,8 +74,7 @@ export function SiteHeader() {
             Shop
           </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          <SellerSelect />
+        <div className="ml-auto flex items-center gap-3 sm:gap-4">
           <AuthActions />
         </div>
       </div>

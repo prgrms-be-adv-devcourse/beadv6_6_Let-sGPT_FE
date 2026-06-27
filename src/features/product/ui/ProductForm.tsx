@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useCategories } from "@/features/category/api/categories.queries";
@@ -6,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 import { type ProductFormValues, productFormSchema } from "../model/product.schema";
+import { ProductImageField } from "./ProductImageField";
 
 const controlClass =
   "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40";
@@ -31,6 +33,12 @@ export function ProductForm({
     resolver: zodResolver(productFormSchema),
     defaultValues,
   });
+
+  // 추가 이미지는 FE 상태로 보관(BE 는 대표=thumbnailKey 만 저장). 수정 시 기존 썸네일로 초기화.
+  const [images, setImages] = useState<string[]>(() =>
+    defaultValues.thumbnailKey ? [defaultValues.thumbnailKey] : [],
+  );
+  const thumbnail = form.watch("thumbnailKey");
 
   return (
     <Form {...form}>
@@ -99,18 +107,12 @@ export function ProductForm({
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="thumbnailKey"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>썸네일 키 (선택)</FormLabel>
-              <FormControl>
-                <Input placeholder="products/2026/abc.jpg 또는 이미지 URL" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+
+        <ProductImageField
+          images={images}
+          onImagesChange={setImages}
+          thumbnail={thumbnail}
+          onThumbnailChange={(url) => form.setValue("thumbnailKey", url, { shouldDirty: true })}
         />
 
         {errorMessage ? <p className="text-destructive text-sm">{errorMessage}</p> : null}

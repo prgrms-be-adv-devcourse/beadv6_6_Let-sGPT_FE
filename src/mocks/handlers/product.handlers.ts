@@ -2,7 +2,7 @@ import { HttpResponse, http } from "msw";
 
 import type { Product, ProductPage } from "@/features/product/model/product.schema";
 import { categories } from "../data/categories";
-import { products, SELLER_ID } from "../data/products";
+import { DEFAULT_SELLER_NAME, products, SELLER_ID } from "../data/products";
 
 type ProductWriteBody = {
   name: string;
@@ -90,6 +90,7 @@ export const productHandlers = [
     products.unshift({
       id,
       sellerId: SELLER_ID,
+      sellerName: DEFAULT_SELLER_NAME,
       name: body.name,
       description: body.description ?? "",
       categoryId: category?.id ?? null,

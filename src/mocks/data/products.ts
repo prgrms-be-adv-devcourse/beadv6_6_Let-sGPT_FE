@@ -3,6 +3,18 @@ import { categories } from "./categories";
 
 export const SELLER_ID = "11111111-1111-1111-1111-111111111111";
 
+/** 표시용 판매자(스토어)명 목 — BE 미제공이라 카탈로그 다양성을 위해 라운드로빈 배정. */
+export const SELLER_NAMES = [
+  "오픈앳 스튜디오",
+  "노드 아틀리에",
+  "메짐 워크룸",
+  "팩토리5",
+  "아워레어",
+] as const;
+
+/** 신규 등록 상품의 기본 판매자명(판매자 콘솔에서 생성 시). */
+export const DEFAULT_SELLER_NAME = SELLER_NAMES[0];
+
 const PRODUCT_NAMES = [
   "오버사이즈 후디 차콜",
   "미니멀 크로스백",
@@ -28,6 +40,7 @@ export const products: Product[] = PRODUCT_NAMES.map((name, index) => {
   return {
     id: `p${index + 1}`,
     sellerId: SELLER_ID,
+    sellerName: SELLER_NAMES[index % SELLER_NAMES.length],
     name,
     description: `${name} — 한정 수량으로 만나는 openAt 단독 상품. 소재와 마감에 집중한 시즌 에디션입니다.`,
     categoryId: category?.id ?? null,

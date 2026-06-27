@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/shared/ui/button";
@@ -89,23 +90,28 @@ export function CategoryManager() {
                 <>
                   <span className="flex-1">{category.name}</span>
                   <Button
-                    size="sm"
-                    variant="outline"
+                    size="icon"
+                    variant="ghost"
+                    aria-label="수정"
+                    title="수정"
+                    className="text-muted-foreground hover:text-foreground"
                     onClick={() => {
                       setEditingId(category.id);
                       setEditName(category.name);
                     }}
                   >
-                    수정
+                    <Pencil />
                   </Button>
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="ghost"
-                    className="text-destructive hover:bg-destructive/5"
+                    aria-label="삭제"
+                    title="삭제"
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     disabled={remove.isPending}
                     onClick={() => remove.mutate(category.id)}
                   >
-                    삭제
+                    <Trash2 />
                   </Button>
                 </>
               )}

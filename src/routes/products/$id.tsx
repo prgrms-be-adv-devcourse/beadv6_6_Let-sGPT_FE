@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useDropList } from "@/features/drop/api/drops.queries";
-import { DropStatusBadge } from "@/features/drop/ui/DropStatusBadge";
+import { DropStatusPill } from "@/features/drop/ui/DropStatusPill";
 import { useProduct } from "@/features/product/api/products.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { buildGallery } from "@/shared/lib/image";
 import { ImageGallery } from "@/shared/ui/ImageGallery";
+import { Tag } from "@/shared/ui/Tag";
 
 export const Route = createFileRoute("/products/$id")({
   component: ProductDetailPage,
@@ -35,11 +36,12 @@ function ProductDetailPage() {
       </div>
 
       <div className="space-y-6">
-        {item.categoryName ? (
-          <p className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
-            {item.categoryName}
-          </p>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {item.categoryName ? <Tag>{item.categoryName}</Tag> : null}
+          {item.sellerName ? (
+            <span className="text-muted-foreground text-sm">{item.sellerName}</span>
+          ) : null}
+        </div>
         <h1 className="font-serif text-4xl leading-tight tracking-tight">{item.name}</h1>
         <p className="font-medium text-2xl tabular-nums">
           {item.price === null ? (
@@ -71,7 +73,7 @@ function ProductDetailPage() {
                     className="flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm transition-colors hover:bg-surface"
                   >
                     <span className="flex items-center gap-2">
-                      <DropStatusBadge status={drop.status} />
+                      <DropStatusPill status={drop.status} />
                       <span className="tabular-nums">{formatKrw(drop.dropPrice)}</span>
                     </span>
                     <span className="text-muted-foreground">

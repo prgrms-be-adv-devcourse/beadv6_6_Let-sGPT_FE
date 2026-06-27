@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Clock } from "lucide-react";
 import { useState } from "react";
 
 import { useOrder } from "@/features/order/api/orders.queries";
@@ -80,8 +81,12 @@ function CheckoutPage() {
           <span className="font-semibold text-lg tabular-nums">{formatKrw(item.totalPrice)}</span>
         </div>
         {!alreadyPaid ? (
-          <p className="text-muted-foreground text-xs">
-            결제 마감 {formatDateTime(item.paymentExpiresAt)}
+          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <Clock className="size-3.5 shrink-0" />
+            <span>
+              <span className="text-foreground">10분 내 결제</span> · 마감{" "}
+              <span className="tabular-nums">{formatDateTime(item.paymentExpiresAt)}</span>
+            </span>
           </p>
         ) : null}
       </section>
@@ -128,7 +133,7 @@ function CheckoutPage() {
             {pending ? "결제 처리 중…" : `${formatKrw(item.totalPrice)} 결제하기`}
           </Button>
           <p className="text-center text-muted-foreground text-xs">
-            지갑 잔액이 부족하면 마이페이지에서 충전할 수 있어요.
+            예치금은 마이페이지에서 충전할 수 있습니다.
           </p>
         </>
       )}

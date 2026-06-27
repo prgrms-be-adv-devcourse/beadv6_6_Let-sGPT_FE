@@ -110,6 +110,7 @@ export const drops: DropCard[] = DROP_SEED.map((seed, index) => {
     id: `d${index + 1}`,
     productId: product?.id ?? `p${seed.productIndex + 1}`,
     productName: product?.name ?? "상품",
+    sellerName: product?.sellerName ?? null,
     categoryId: product?.categoryId ?? null,
     categoryName: product?.categoryName ?? null,
     thumbnailKey: product?.thumbnailKey ?? null,

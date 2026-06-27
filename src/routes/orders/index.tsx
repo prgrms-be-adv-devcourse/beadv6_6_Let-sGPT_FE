@@ -5,8 +5,8 @@ import { useMyOrders } from "@/features/order/api/orders.queries";
 import type { OrderStatus } from "@/features/order/model/order.schema";
 import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
-import { FilterChip } from "@/shared/ui/FilterChip";
 import { Pagination } from "@/shared/ui/Pagination";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 
 export const Route = createFileRoute("/orders/")({
   component: OrderListPage,
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/orders/")({
 
 const PAGE_SIZE = 10;
 
-const STATUS_TABS: { value: OrderStatus | undefined; label: string }[] = [
-  { value: undefined, label: "전체" },
+const STATUS_TABS: { value: OrderStatus | "ALL"; label: string }[] = [
+  { value: "ALL", label: "전체" },
   { value: "PAYMENT_PENDING", label: "결제 대기" },
   { value: "COMPLETED", label: "결제 완료" },
   { value: "CANCELLED", label: "취소" },
@@ -23,9 +23,9 @@ const STATUS_TABS: { value: OrderStatus | undefined; label: string }[] = [
 ];
 
 function OrderListPage() {
-  const [status, setStatus] = useState<OrderStatus | undefined>(undefined);
+  const [status, setStatus] = useState<OrderStatus | "ALL">("ALL");
   const [page, setPage] = useState(0);
-  const orders = useMyOrders({ ...(status ? { status } : {}), page, size: PAGE_SIZE });
+  const orders = useMyOrders({ ...(status !== "ALL" ? { status } : {}), page, size: PAGE_SIZE });
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -34,19 +34,17 @@ function OrderListPage() {
         <h1 className="font-serif text-4xl tracking-tight">주문 내역</h1>
       </header>
 
-      <div className="flex flex-wrap gap-2 border-border border-b pb-4">
-        {STATUS_TABS.map((tab) => (
-          <FilterChip
-            key={tab.label}
-            active={status === tab.value}
-            onClick={() => {
-              setStatus(tab.value);
-              setPage(0);
-            }}
-          >
-            {tab.label}
-          </FilterChip>
-        ))}
+      <div className="border-border border-b pb-4">
+        <SegmentedControl
+          aria-label="주문 상태 필터"
+          variant="underline"
+          options={STATUS_TABS}
+          value={status}
+          onChange={(value) => {
+            setStatus(value as OrderStatus | "ALL");
+            setPage(0);
+          }}
+        />
       </div>
 
       {orders.isPending ? (

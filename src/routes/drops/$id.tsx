@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { useDrop } from "@/features/drop/api/drops.queries";
 import { Countdown } from "@/features/drop/ui/Countdown";
-import { DropStatusBadge } from "@/features/drop/ui/DropStatusBadge";
+import { DropStatusPill } from "@/features/drop/ui/DropStatusPill";
 import { StockBar } from "@/features/drop/ui/StockBar";
 import { useCreateOrder } from "@/features/order/api/orders.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { buildGallery } from "@/shared/lib/image";
 import { Button } from "@/shared/ui/button";
 import { ImageGallery } from "@/shared/ui/ImageGallery";
+import { Tag } from "@/shared/ui/Tag";
 
 export const Route = createFileRoute("/drops/$id")({
   component: DropDetailPage,
@@ -48,28 +50,31 @@ function DropDetailPage() {
   function renderCta() {
     if (isOpen) {
       return (
-        <>
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">수량</span>
-            <div className="inline-flex items-center rounded-md border">
+        <div className="space-y-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <span className="text-sm">수량</span>
+              <p className="text-muted-foreground text-xs tabular-nums">최대 {maxQty}개</p>
+            </div>
+            <div className="-mr-2 inline-flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setQuantity((value) => Math.max(1, value - 1))}
                 disabled={quantity <= 1}
-                className="size-9 text-lg disabled:opacity-30"
+                className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
                 aria-label="수량 감소"
               >
-                −
+                <Minus className="size-4" />
               </button>
-              <span className="w-10 text-center text-sm tabular-nums">{quantity}</span>
+              <span className="w-8 text-center font-medium text-sm tabular-nums">{quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity((value) => Math.min(maxQty, value + 1))}
                 disabled={quantity >= maxQty}
-                className="size-9 text-lg disabled:opacity-30"
+                className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
                 aria-label="수량 증가"
               >
-                +
+                <Plus className="size-4" />
               </button>
             </div>
           </div>
@@ -79,7 +84,7 @@ function DropDetailPage() {
           <Button size="lg" className="w-full" disabled={createOrder.isPending} onClick={buy}>
             {createOrder.isPending ? "주문 처리 중…" : "주문하기"}
           </Button>
-        </>
+        </div>
       );
     }
     if (item.status === "REGISTERED") {
@@ -110,12 +115,11 @@ function DropDetailPage() {
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <DropStatusBadge status={item.status} />
-          {item.categoryName ? (
-            <span className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
-              {item.categoryName}
-            </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <DropStatusPill status={item.status} />
+          {item.categoryName ? <Tag>{item.categoryName}</Tag> : null}
+          {item.sellerName ? (
+            <span className="text-muted-foreground text-sm">{item.sellerName}</span>
           ) : null}
         </div>
         <h1 className="font-serif text-4xl leading-tight tracking-tight">{item.productName}</h1>
@@ -142,12 +146,7 @@ function DropDetailPage() {
           </div>
         ) : null}
 
-        <div className="space-y-4 border-border border-t pt-6">
-          {renderCta()}
-          <p className="text-center text-muted-foreground text-xs">
-            한정 수량 · 주문 후 10분 내 결제
-          </p>
-        </div>
+        <div className="border-border border-t pt-6">{renderCta()}</div>
       </div>
     </div>
   );
