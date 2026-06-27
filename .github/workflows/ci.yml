@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 검증 게이트(§5): typecheck + lint + test + build 를 머지 조건으로 둔다.
+# 커버리지/검증을 약화하는 변경이 즉시 빨갛게 보이도록 한다.
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: 라우트 트리 생성
+        run: pnpm routes:gen
+
+      - name: 린트/포맷 검사
+        run: pnpm lint
+
+      - name: 타입체크
+        run: pnpm typecheck
+
+      - name: 단위/컴포넌트 테스트
+        run: pnpm test
+
+      - name: 프로덕션 빌드
+        run: pnpm build
+
+      # TODO: Playwright 브라우저 설치 + 시각 회귀(스크린샷 baseline) 게이트 추가

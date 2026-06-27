@@ -1,0 +1,17 @@
+# pre-commit 검증 게이트 — 통과 못 하면 커밋 차단. 성공은 조용히, 실패는 시끄럽게(§1.1).
+# 이 머신엔 전역 pnpm 이 없고 corepack(= Node 동봉, PATH 존재)으로만 구동되므로
+# 훅에서는 항상 `corepack pnpm ...` 형태로 호출한다.
+pre-commit:
+  parallel: false
+  jobs:
+    - name: biome
+      glob: "*.{ts,tsx,js,jsx,json,jsonc,css}"
+      run: corepack pnpm biome check --no-errors-on-unmatched --write {staged_files}
+      stage_fixed: true
+    - name: routes
+      glob: "src/routes/**/*.tsx"
+      run: corepack pnpm routes:gen && git add src/routeTree.gen.ts
+    - name: typecheck
+      run: corepack pnpm typecheck
+    - name: test
+      run: corepack pnpm test
