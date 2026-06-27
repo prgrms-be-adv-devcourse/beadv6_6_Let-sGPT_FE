@@ -1,6 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+
+import { SiteFooter } from "@/app/layout/SiteFooter";
+import { SiteHeader } from "@/app/layout/SiteHeader";
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -12,18 +15,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout() {
   return (
-    <div className="min-h-dvh">
-      <header className="flex gap-4 border-b px-6 py-4">
-        <Link to="/" className="font-semibold [&.active]:underline">
-          홈
-        </Link>
-        <Link to="/products" className="[&.active]:underline">
-          상품
-        </Link>
-      </header>
-      <main className="p-6">
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <Outlet />
       </main>
+      <SiteFooter />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </div>
   );
