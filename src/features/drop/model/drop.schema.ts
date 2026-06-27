@@ -14,6 +14,8 @@ export const dropCardSchema = z.object({
   id: z.string(),
   productId: z.string(),
   productName: z.string(),
+  categoryId: z.string().nullable(),
+  categoryName: z.string().nullable(),
   thumbnailKey: z.string().nullable(),
   dropPrice: z.number(),
   totalQuantity: z.number(),

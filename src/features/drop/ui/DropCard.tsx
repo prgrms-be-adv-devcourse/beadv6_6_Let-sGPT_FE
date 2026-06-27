@@ -1,4 +1,4 @@
-import { formatKrw } from "@/shared/lib/format";
+import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import type { DropCard as DropCardModel } from "../model/drop.schema";
 import { DropStatusBadge } from "./DropStatusBadge";
@@ -7,6 +7,7 @@ import { StockBar } from "./StockBar";
 /** 드롭 1건을 표현하는 이미지 우선 에디토리얼 카드(데이터 페칭 없음). */
 export function DropCard({ drop }: { drop: DropCardModel }) {
   const showStock = drop.status === "OPEN" || drop.status === "SOLD_OUT";
+  const showOpenAt = drop.status === "REGISTERED";
 
   return (
     <article data-testid="drop-card" className="group flex flex-col">
@@ -21,6 +22,11 @@ export function DropCard({ drop }: { drop: DropCardModel }) {
           <h3 className="line-clamp-1 font-medium text-base leading-snug">{drop.productName}</h3>
           <p className="font-medium tabular-nums">{formatKrw(drop.dropPrice)}</p>
         </div>
+        {showOpenAt ? (
+          <p className="mt-auto text-muted-foreground text-sm">
+            {formatDateTime(drop.openAt)} 오픈
+          </p>
+        ) : null}
         {showStock ? (
           <div className="mt-auto">
             <StockBar remaining={drop.remainingQuantity} total={drop.totalQuantity} />

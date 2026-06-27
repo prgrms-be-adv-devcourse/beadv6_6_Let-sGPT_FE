@@ -9,6 +9,9 @@ import { type DropCardPage, type DropStatus, dropCardPageSchema } from "../model
 
 export type FetchDropsParams = {
   status?: DropStatus;
+  categoryId?: string;
+  keyword?: string;
+  sort?: string;
   page?: number;
   size?: number;
 };
@@ -17,6 +20,15 @@ export async function fetchDrops(params: FetchDropsParams = {}): Promise<DropCar
   const url = new URL("/api/v1/drops", import.meta.env.VITE_API_BASE_URL);
   if (params.status) {
     url.searchParams.set("status", params.status);
+  }
+  if (params.categoryId) {
+    url.searchParams.set("categoryId", params.categoryId);
+  }
+  if (params.keyword) {
+    url.searchParams.set("keyword", params.keyword);
+  }
+  if (params.sort) {
+    url.searchParams.set("sort", params.sort);
   }
   if (params.page !== undefined) {
     url.searchParams.set("page", String(params.page));

@@ -6,6 +6,7 @@ import { type ProductPage, productPageSchema } from "../model/product.schema";
 export type ProductListParams = {
   categoryId?: string;
   keyword?: string;
+  sort?: string;
   page?: number;
   size?: number;
 };

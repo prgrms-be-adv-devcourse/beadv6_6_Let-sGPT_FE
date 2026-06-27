@@ -8,6 +8,8 @@ const baseDrop: DropCardModel = {
   id: "d1",
   productId: "p1",
   productName: "한정판 운동화",
+  categoryId: "c-sneakers",
+  categoryName: "스니커즈",
   thumbnailKey: null,
   dropPrice: 219000,
   totalQuantity: 100,
@@ -31,5 +33,12 @@ describe("DropCard", () => {
     render(<DropCard drop={{ ...baseDrop, status: "SOLD_OUT", remainingQuantity: 0 }} />);
 
     expect(screen.getByText("매진")).toBeInTheDocument();
+  });
+
+  it("오픈 예정 상태는 오픈 시각을 보여준다", () => {
+    render(<DropCard drop={{ ...baseDrop, status: "REGISTERED", remainingQuantity: 100 }} />);
+
+    expect(screen.getByText("오픈 예정")).toBeInTheDocument();
+    expect(screen.getByText(/2026.*오픈/)).toBeInTheDocument();
   });
 });

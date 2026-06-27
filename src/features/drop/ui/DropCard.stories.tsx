@@ -7,6 +7,8 @@ const baseDrop: DropCardModel = {
   id: "d1",
   productId: "p1",
   productName: "한정판 러너 SS26",
+  categoryId: "c-sneakers",
+  categoryName: "스니커즈",
   thumbnailKey: null,
   dropPrice: 219000,
   totalQuantity: 100,

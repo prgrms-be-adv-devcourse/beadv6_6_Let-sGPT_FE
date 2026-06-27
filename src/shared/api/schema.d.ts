@@ -69,6 +69,8 @@ export interface operations {
       query?: {
         categoryId?: string;
         keyword?: string;
+        /** Spring Pageable 정렬, 예: "createdAt,desc" / "price,asc" */
+        sort?: string;
         page?: number;
         size?: number;
       };
