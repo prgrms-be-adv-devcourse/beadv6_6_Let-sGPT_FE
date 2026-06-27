@@ -1,23 +1,31 @@
 import { cn } from "@/shared/lib/utils";
 import type { DropStatus } from "../model/drop.schema";
 
-const STATUS_META: Record<DropStatus, { label: string; className: string }> = {
-  REGISTERED: { label: "오픈 예정", className: "bg-secondary text-secondary-foreground" },
-  OPEN: { label: "진행중", className: "bg-primary text-primary-foreground" },
-  CLOSE: { label: "종료", className: "bg-muted text-muted-foreground" },
-  SOLD_OUT: { label: "매진", className: "bg-destructive text-white" },
+const STATUS_LABEL: Record<DropStatus, string> = {
+  REGISTERED: "오픈 예정",
+  OPEN: "진행중",
+  CLOSE: "종료",
+  SOLD_OUT: "매진",
 };
 
-export function DropStatusBadge({ status }: { status: DropStatus }) {
-  const meta = STATUS_META[status];
+/** 드롭 상태 태그. 진행중(OPEN)은 live 컬러의 펄스 점으로 "지금 라이브"를 신호한다. */
+export function DropStatusBadge({ status, className }: { status: DropStatus; className?: string }) {
+  const isLive = status === "OPEN";
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 font-medium text-xs",
-        meta.className,
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-background/80 px-2.5 py-1 font-medium text-foreground text-xs backdrop-blur",
+        status === "SOLD_OUT" && "text-muted-foreground",
+        className,
       )}
     >
-      {meta.label}
+      {isLive ? (
+        <span className="relative flex size-1.5">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-live opacity-75" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-live" />
+        </span>
+      ) : null}
+      {STATUS_LABEL[status]}
     </span>
   );
 }

@@ -1,7 +1,7 @@
-# AGENTS.md — Let'sGPT FE 작전 지시서
+# AGENTS.md — openAt FE 작전 지시서
 
-별도 Spring BE(MSA)의 API를 소비하는 React SPA. 구현은 에이전트가 검증 루프를 돌며 수행한다.
-상세 배경/근거는 `docs/frontend-harness-guide.md`, 화면 정의는 `screens/`.
+별도 Spring BE(MSA)의 API를 소비하는 React SPA(플랫폼 **openAt** · 팀 Let'sGPT). 구현은 에이전트가 검증 루프를 돌며 수행한다.
+상세 배경/근거는 `docs/frontend-harness-guide.md`, **디자인 지침은 `docs/design-system.md`**, 화면 정의는 `screens/`.
 
 ## 0. 불명확하면 멈추고 질문하라
 가정으로 진행하지 말 것. 요구·계약·화면이 모호하면 코드 생성 전에 질문한다.
@@ -28,7 +28,9 @@
 - 상태: 서버 상태 = TanStack Query(`*.queries.ts`), 클라이언트 전역 = Zustand. 둘을 섞지 않는다.
 - 경계: API 응답은 `src/shared/api/client.ts`로 호출하고 Zod 스키마로 런타임 검증(`model/*.schema.ts`).
 - UI: shadcn/ui 컴포넌트는 `src/shared/ui`에 소유. 클래스 결합은 `cn()`.
-- 새 코드는 기존 시드(`features/product`)의 결을 따른다.
+- 디자인: 에디토리얼 미니멀 화이트. **시맨틱 토큰만 사용**(하드코드 색 금지). 상세 = `docs/design-system.md`.
+- 와이어프레임(`screens/`)은 "무엇을 담을지"의 참고일 뿐 — 배치·형식은 디자인 시스템에 맞춰 재구성한다.
+- 새 코드는 기존 시드(`features/drop`·`features/product`)의 결을 따른다.
 
 ## 4. 금지 / 승인 게이트
 - ❌ 자동생성 파일 직접 수정 금지: `src/routeTree.gen.ts`(→ `routes:gen`), `src/shared/api/schema.d.ts`(→ `codegen`).

@@ -17,7 +17,7 @@ function RootLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10 sm:py-14">
         <Outlet />
       </main>
       <SiteFooter />

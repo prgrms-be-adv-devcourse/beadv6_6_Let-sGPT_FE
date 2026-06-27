@@ -1,28 +1,32 @@
-import { formatDateTime, formatKrw } from "@/shared/lib/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { formatKrw } from "@/shared/lib/format";
 import type { DropCard as DropCardModel } from "../model/drop.schema";
+import { DropImage } from "./DropImage";
 import { DropStatusBadge } from "./DropStatusBadge";
+import { StockBar } from "./StockBar";
 
-const quantityFormatter = new Intl.NumberFormat("ko-KR");
-
-/** 드롭 1건을 표현하는 순수 프레젠테이션 카드(데이터 페칭 없음). */
+/** 드롭 1건을 표현하는 이미지 우선 에디토리얼 카드(데이터 페칭 없음). */
 export function DropCard({ drop }: { drop: DropCardModel }) {
+  const showStock = drop.status === "OPEN" || drop.status === "SOLD_OUT";
+
   return (
-    <Card data-testid="drop-card">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle>{drop.productName}</CardTitle>
-          <DropStatusBadge status={drop.status} />
+    <article data-testid="drop-card" className="group flex flex-col">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-surface">
+        <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
+          <DropImage name={drop.productName} />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-1">
-        <p className="font-semibold">{formatKrw(drop.dropPrice)}</p>
-        <p className="text-muted-foreground text-sm">오픈 {formatDateTime(drop.openAt)}</p>
-        <p className="text-muted-foreground text-sm">
-          남은 수량 {quantityFormatter.format(drop.remainingQuantity)} /{" "}
-          {quantityFormatter.format(drop.totalQuantity)}
-        </p>
-      </CardContent>
-    </Card>
+        <DropStatusBadge status={drop.status} className="absolute top-3 left-3" />
+      </div>
+      <div className="mt-4 flex flex-1 flex-col gap-3">
+        <div className="space-y-1">
+          <h3 className="line-clamp-1 font-medium text-base leading-snug">{drop.productName}</h3>
+          <p className="font-medium tabular-nums">{formatKrw(drop.dropPrice)}</p>
+        </div>
+        {showStock ? (
+          <div className="mt-auto">
+            <StockBar remaining={drop.remainingQuantity} total={drop.totalQuantity} />
+          </div>
+        ) : null}
+      </div>
+    </article>
   );
 }

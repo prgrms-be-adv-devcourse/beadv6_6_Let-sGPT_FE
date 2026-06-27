@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-test("홈 화면이 서비스 제목을 보여준다", async ({ page }) => {
+test("홈 헤더에 브랜드 워드마크(openAt)가 보인다", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Let'sGPT" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "openAt" }).first()).toBeVisible();
 });
 
-test("상품 탭으로 이동할 수 있다", async ({ page }) => {
+test("Shop 내비로 상품 목록으로 이동한다", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "상품" }).click();
+  await page.getByRole("link", { name: "Shop" }).click();
   await expect(page).toHaveURL(/\/products/);
 });

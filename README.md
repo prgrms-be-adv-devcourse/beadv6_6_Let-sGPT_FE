@@ -1,11 +1,12 @@
-# Let'sGPT — Frontend
+# openAt — Frontend
 
-별도 Spring BE(MSA)의 API를 소비하는 **React 19 + Vite SPA**.
+한정판 드롭 커머스 **openAt**(팀 Let'sGPT)의 프론트엔드. 별도 Spring BE(MSA)의 API를 소비하는 **React 19 + Vite SPA**.
 사람은 스택·와이어프레임을 정의하고, 구현은 에이전트가 검증 루프(타입·테스트·시각)를 돌며 수행한다.
 
 - 작전 지시서(에이전트 진입점): [`AGENTS.md`](./AGENTS.md)
+- 디자인 지침: [`docs/design-system.md`](./docs/design-system.md)
 - 설계 근거(하네스 엔지니어링): [`docs/frontend-harness-guide.md`](./docs/frontend-harness-guide.md)
-- 화면 와이어프레임: [`screens/INDEX.md`](./screens/INDEX.md)
+- 화면 와이어프레임(참고용): [`screens/INDEX.md`](./screens/INDEX.md)
 
 ## 빠른 시작
 
