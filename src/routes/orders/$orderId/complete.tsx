@@ -59,6 +59,14 @@ function OrderCompletePage() {
           <Link to="/">홈으로</Link>
         </Button>
       </div>
+
+      <Link
+        to="/orders/$orderId"
+        params={{ orderId }}
+        className="mt-4 block text-center text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline"
+      >
+        주문 상세 보기
+      </Link>
     </div>
   );
 }

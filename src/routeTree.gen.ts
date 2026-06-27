@@ -13,10 +13,12 @@ import { Route as SignupRouteImport } from "./routes/signup";
 import { Route as LoginRouteImport } from "./routes/login";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
+import { Route as OrdersIndexRouteImport } from "./routes/orders/index";
 import { Route as DropsIndexRouteImport } from "./routes/drops/index";
 import { Route as ProductsIdRouteImport } from "./routes/products/$id";
 import { Route as DropsIdRouteImport } from "./routes/drops/$id";
 import { Route as CheckoutOrderIdRouteImport } from "./routes/checkout/$orderId";
+import { Route as OrdersOrderIdIndexRouteImport } from "./routes/orders/$orderId/index";
 import { Route as OrdersOrderIdCompleteRouteImport } from "./routes/orders/$orderId/complete";
 
 const SignupRoute = SignupRouteImport.update({
@@ -39,6 +41,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   path: "/products/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: "/orders/",
+  path: "/orders/",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const DropsIndexRoute = DropsIndexRouteImport.update({
   id: "/drops/",
   path: "/drops/",
@@ -59,6 +66,11 @@ const CheckoutOrderIdRoute = CheckoutOrderIdRouteImport.update({
   path: "/checkout/$orderId",
   getParentRoute: () => rootRouteImport,
 } as any);
+const OrdersOrderIdIndexRoute = OrdersOrderIdIndexRouteImport.update({
+  id: "/orders/$orderId/",
+  path: "/orders/$orderId/",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const OrdersOrderIdCompleteRoute = OrdersOrderIdCompleteRouteImport.update({
   id: "/orders/$orderId/complete",
   path: "/orders/$orderId/complete",
@@ -73,8 +85,10 @@ export interface FileRoutesByFullPath {
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/drops/": typeof DropsIndexRoute;
+  "/orders/": typeof OrdersIndexRoute;
   "/products/": typeof ProductsIndexRoute;
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
+  "/orders/$orderId/": typeof OrdersOrderIdIndexRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
@@ -84,8 +98,10 @@ export interface FileRoutesByTo {
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/drops": typeof DropsIndexRoute;
+  "/orders": typeof OrdersIndexRoute;
   "/products": typeof ProductsIndexRoute;
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
+  "/orders/$orderId": typeof OrdersOrderIdIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
@@ -96,8 +112,10 @@ export interface FileRoutesById {
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/drops/": typeof DropsIndexRoute;
+  "/orders/": typeof OrdersIndexRoute;
   "/products/": typeof ProductsIndexRoute;
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
+  "/orders/$orderId/": typeof OrdersOrderIdIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
@@ -109,8 +127,10 @@ export interface FileRouteTypes {
     | "/drops/$id"
     | "/products/$id"
     | "/drops/"
+    | "/orders/"
     | "/products/"
-    | "/orders/$orderId/complete";
+    | "/orders/$orderId/complete"
+    | "/orders/$orderId/";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -120,8 +140,10 @@ export interface FileRouteTypes {
     | "/drops/$id"
     | "/products/$id"
     | "/drops"
+    | "/orders"
     | "/products"
-    | "/orders/$orderId/complete";
+    | "/orders/$orderId/complete"
+    | "/orders/$orderId";
   id:
     | "__root__"
     | "/"
@@ -131,8 +153,10 @@ export interface FileRouteTypes {
     | "/drops/$id"
     | "/products/$id"
     | "/drops/"
+    | "/orders/"
     | "/products/"
-    | "/orders/$orderId/complete";
+    | "/orders/$orderId/complete"
+    | "/orders/$orderId/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -143,8 +167,10 @@ export interface RootRouteChildren {
   DropsIdRoute: typeof DropsIdRoute;
   ProductsIdRoute: typeof ProductsIdRoute;
   DropsIndexRoute: typeof DropsIndexRoute;
+  OrdersIndexRoute: typeof OrdersIndexRoute;
   ProductsIndexRoute: typeof ProductsIndexRoute;
   OrdersOrderIdCompleteRoute: typeof OrdersOrderIdCompleteRoute;
+  OrdersOrderIdIndexRoute: typeof OrdersOrderIdIndexRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -177,6 +203,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ProductsIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/orders/": {
+      id: "/orders/";
+      path: "/orders";
+      fullPath: "/orders/";
+      preLoaderRoute: typeof OrdersIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/drops/": {
       id: "/drops/";
       path: "/drops";
@@ -205,6 +238,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof CheckoutOrderIdRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/orders/$orderId/": {
+      id: "/orders/$orderId/";
+      path: "/orders/$orderId";
+      fullPath: "/orders/$orderId/";
+      preLoaderRoute: typeof OrdersOrderIdIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/orders/$orderId/complete": {
       id: "/orders/$orderId/complete";
       path: "/orders/$orderId/complete";
@@ -223,8 +263,10 @@ const rootRouteChildren: RootRouteChildren = {
   DropsIdRoute: DropsIdRoute,
   ProductsIdRoute: ProductsIdRoute,
   DropsIndexRoute: DropsIndexRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
   OrdersOrderIdCompleteRoute: OrdersOrderIdCompleteRoute,
+  OrdersOrderIdIndexRoute: OrdersOrderIdIndexRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

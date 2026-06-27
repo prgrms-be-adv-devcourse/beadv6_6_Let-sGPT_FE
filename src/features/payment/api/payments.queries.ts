@@ -22,11 +22,19 @@ export function useRefundHistories(params: { page?: number; size?: number } = {}
 }
 
 export function useCreatePayment() {
-  return useMutation({ mutationFn: createPayment });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createPayment,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
+  });
 }
 
 export function useConfirmPayment() {
-  return useMutation({ mutationFn: confirmPayment });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: confirmPayment,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
+  });
 }
 
 export function useChargeWallet() {
