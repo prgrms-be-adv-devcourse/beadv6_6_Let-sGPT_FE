@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
@@ -32,9 +34,10 @@ export function HeroDrop() {
             </div>
             <Countdown target={nextDrop.openAt} className="mt-9" />
             <div className="mt-9 flex flex-wrap gap-3">
-              <Button size="lg">알림 받기</Button>
-              <Button size="lg" variant="outline">
-                자세히 보기
+              <Button asChild size="lg">
+                <Link to="/drops/$id" params={{ id: nextDrop.id }}>
+                  자세히 보기
+                </Link>
               </Button>
             </div>
           </>
@@ -52,7 +55,10 @@ export function HeroDrop() {
 
       <div className="order-1 overflow-hidden rounded-lg bg-surface lg:order-2">
         <div className="aspect-[16/10] lg:aspect-[4/5]">
-          <ImagePlaceholder name={nextDrop?.productName ?? "openAt"} />
+          <ImagePlaceholder
+            name={nextDrop?.productName ?? "openAt"}
+            src={nextDrop?.thumbnailKey ?? null}
+          />
         </div>
       </div>
     </section>

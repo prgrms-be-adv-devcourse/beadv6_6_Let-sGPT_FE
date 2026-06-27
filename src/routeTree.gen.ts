@@ -14,6 +14,10 @@ import { Route as LoginRouteImport } from "./routes/login";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
 import { Route as DropsIndexRouteImport } from "./routes/drops/index";
+import { Route as ProductsIdRouteImport } from "./routes/products/$id";
+import { Route as DropsIdRouteImport } from "./routes/drops/$id";
+import { Route as CheckoutOrderIdRouteImport } from "./routes/checkout/$orderId";
+import { Route as OrdersOrderIdCompleteRouteImport } from "./routes/orders/$orderId/complete";
 
 const SignupRoute = SignupRouteImport.update({
   id: "/signup",
@@ -40,43 +44,107 @@ const DropsIndexRoute = DropsIndexRouteImport.update({
   path: "/drops/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const ProductsIdRoute = ProductsIdRouteImport.update({
+  id: "/products/$id",
+  path: "/products/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const DropsIdRoute = DropsIdRouteImport.update({
+  id: "/drops/$id",
+  path: "/drops/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const CheckoutOrderIdRoute = CheckoutOrderIdRouteImport.update({
+  id: "/checkout/$orderId",
+  path: "/checkout/$orderId",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const OrdersOrderIdCompleteRoute = OrdersOrderIdCompleteRouteImport.update({
+  id: "/orders/$orderId/complete",
+  path: "/orders/$orderId/complete",
+  getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
   "/signup": typeof SignupRoute;
+  "/checkout/$orderId": typeof CheckoutOrderIdRoute;
+  "/drops/$id": typeof DropsIdRoute;
+  "/products/$id": typeof ProductsIdRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
+  "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
   "/signup": typeof SignupRoute;
+  "/checkout/$orderId": typeof CheckoutOrderIdRoute;
+  "/drops/$id": typeof DropsIdRoute;
+  "/products/$id": typeof ProductsIdRoute;
   "/drops": typeof DropsIndexRoute;
   "/products": typeof ProductsIndexRoute;
+  "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
   "/signup": typeof SignupRoute;
+  "/checkout/$orderId": typeof CheckoutOrderIdRoute;
+  "/drops/$id": typeof DropsIdRoute;
+  "/products/$id": typeof ProductsIdRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
+  "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/login" | "/signup" | "/drops/" | "/products/";
+  fullPaths:
+    | "/"
+    | "/login"
+    | "/signup"
+    | "/checkout/$orderId"
+    | "/drops/$id"
+    | "/products/$id"
+    | "/drops/"
+    | "/products/"
+    | "/orders/$orderId/complete";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/login" | "/signup" | "/drops" | "/products";
-  id: "__root__" | "/" | "/login" | "/signup" | "/drops/" | "/products/";
+  to:
+    | "/"
+    | "/login"
+    | "/signup"
+    | "/checkout/$orderId"
+    | "/drops/$id"
+    | "/products/$id"
+    | "/drops"
+    | "/products"
+    | "/orders/$orderId/complete";
+  id:
+    | "__root__"
+    | "/"
+    | "/login"
+    | "/signup"
+    | "/checkout/$orderId"
+    | "/drops/$id"
+    | "/products/$id"
+    | "/drops/"
+    | "/products/"
+    | "/orders/$orderId/complete";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   LoginRoute: typeof LoginRoute;
   SignupRoute: typeof SignupRoute;
+  CheckoutOrderIdRoute: typeof CheckoutOrderIdRoute;
+  DropsIdRoute: typeof DropsIdRoute;
+  ProductsIdRoute: typeof ProductsIdRoute;
   DropsIndexRoute: typeof DropsIndexRoute;
   ProductsIndexRoute: typeof ProductsIndexRoute;
+  OrdersOrderIdCompleteRoute: typeof OrdersOrderIdCompleteRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -116,6 +184,34 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DropsIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/products/$id": {
+      id: "/products/$id";
+      path: "/products/$id";
+      fullPath: "/products/$id";
+      preLoaderRoute: typeof ProductsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/drops/$id": {
+      id: "/drops/$id";
+      path: "/drops/$id";
+      fullPath: "/drops/$id";
+      preLoaderRoute: typeof DropsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/checkout/$orderId": {
+      id: "/checkout/$orderId";
+      path: "/checkout/$orderId";
+      fullPath: "/checkout/$orderId";
+      preLoaderRoute: typeof CheckoutOrderIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/orders/$orderId/complete": {
+      id: "/orders/$orderId/complete";
+      path: "/orders/$orderId/complete";
+      fullPath: "/orders/$orderId/complete";
+      preLoaderRoute: typeof OrdersOrderIdCompleteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
@@ -123,8 +219,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  CheckoutOrderIdRoute: CheckoutOrderIdRoute,
+  DropsIdRoute: DropsIdRoute,
+  ProductsIdRoute: ProductsIdRoute,
   DropsIndexRoute: DropsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
+  OrdersOrderIdCompleteRoute: OrdersOrderIdCompleteRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

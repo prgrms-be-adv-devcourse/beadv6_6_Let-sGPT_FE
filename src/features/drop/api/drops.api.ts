@@ -1,4 +1,11 @@
-import { type DropCardPage, type DropStatus, dropCardPageSchema } from "../model/drop.schema";
+import { apiFetch } from "@/shared/api/http";
+import {
+  type DropCard,
+  type DropCardPage,
+  type DropStatus,
+  dropCardPageSchema,
+  dropCardSchema,
+} from "../model/drop.schema";
 
 // TODO(fe-api): GET /api/v1/drops?status={REGISTERED|OPEN|CLOSE|SOLD_OUT}&page&size -> PageResponse<DropCardResponse>
 //   필요: 홈(진행중/오픈예정) + 드롭 목록 화면. BE DropController 는 POST/DELETE(command)만 → 조회(read) 미구현.
@@ -43,4 +50,9 @@ export async function fetchDrops(params: FetchDropsParams = {}): Promise<DropCar
   }
   // 신뢰 경계: 응답을 Zod 로 검증한다(§6.1).
   return dropCardPageSchema.parse(await response.json());
+}
+
+// TODO(fe-api): GET /api/v1/drops/{id} 단건 조회도 BE 미구현 → provisional(드롭 상세 화면).
+export function getDrop(id: string): Promise<DropCard> {
+  return apiFetch(`/api/v1/drops/${id}`, dropCardSchema, { auth: false });
 }

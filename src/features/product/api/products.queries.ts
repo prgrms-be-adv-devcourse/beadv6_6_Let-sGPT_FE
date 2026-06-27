@@ -1,7 +1,8 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { apiClient } from "@/shared/api/client";
-import { type ProductPage, productPageSchema } from "../model/product.schema";
+import { apiFetch } from "@/shared/api/http";
+import { type ProductPage, productPageSchema, productSchema } from "../model/product.schema";
 
 export type ProductListParams = {
   categoryId?: string;
@@ -30,8 +31,17 @@ export const productQueries = {
         return productPageSchema.parse(data);
       },
     }),
+  detail: (id: string) =>
+    queryOptions({
+      queryKey: ["products", "detail", id] as const,
+      queryFn: () => apiFetch(`/api/v1/products/${id}`, productSchema),
+    }),
 };
 
 export function useProductList(params: ProductListParams = {}) {
   return useQuery(productQueries.list(params));
+}
+
+export function useProduct(id: string) {
+  return useQuery(productQueries.detail(id));
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { CategorySidebar } from "@/features/category/ui/CategorySidebar";
@@ -114,7 +114,9 @@ function DropListPage() {
         <>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
             {drops.data.content.map((drop) => (
-              <DropCard key={drop.id} drop={drop} />
+              <Link key={drop.id} to="/drops/$id" params={{ id: drop.id }} className="block">
+                <DropCard drop={drop} />
+              </Link>
             ))}
           </div>
           <Pagination page={page} totalPages={drops.data.totalPages} onPageChange={setPage} />

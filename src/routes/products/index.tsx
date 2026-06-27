@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { CategorySidebar } from "@/features/category/ui/CategorySidebar";
@@ -87,7 +87,14 @@ function ProductListPage() {
         <>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
             {products.data.content.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <Link
+                key={product.id}
+                to="/products/$id"
+                params={{ id: product.id }}
+                className="block"
+              >
+                <ProductCard product={product} />
+              </Link>
             ))}
           </div>
           <Pagination page={page} totalPages={products.data.totalPages} onPageChange={setPage} />
