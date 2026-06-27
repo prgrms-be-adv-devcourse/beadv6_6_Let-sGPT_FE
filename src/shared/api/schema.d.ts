@@ -3,7 +3,7 @@
  *
  * 게이트웨이가 뜬 뒤 `pnpm codegen` 을 실행하면
  * `$VITE_API_BASE_URL/v3/api-docs/all` 통합 스펙에서 이 파일이 통째로 재생성된다.
- * 지금은 시드 슬라이스(product)가 컴파일·검증되도록 최소 경로만 손으로 채워 둔 임시본이다.
+ * 지금은 BE 실계약(ProductController/ProductResponse/PageResponse)을 손으로 옮겨 둔 임시본이다.
  */
 export interface paths {
   "/api/v1/products": {
@@ -13,7 +13,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["getProducts"];
+    get: operations["searchProducts"];
     put?: never;
     post?: never;
     delete?: never;
@@ -28,17 +28,30 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    /** `com.openat.product.presentation.dto.ProductResponse` */
     Product: {
       id: string;
+      sellerId: string;
       name: string;
-      priceAmount: number;
-      thumbnailUrl?: string;
+      description: string;
+      /** 카테고리 id, null: 미분류 */
+      categoryId: string | null;
+      /** 카테고리명, null: 미분류 */
+      categoryName: string | null;
+      /** 판매가, null: 가격 미정 */
+      price: number | null;
+      /** 썸네일 키, null: 이미지 없음 */
+      thumbnailKey: string | null;
+      /** 생성 일시(ISO-8601) */
+      createdAt: string;
     };
+    /** `com.openat.common.response.PageResponse<ProductResponse>` */
     ProductPage: {
       content: components["schemas"]["Product"][];
-      totalElements: number;
       page: number;
       size: number;
+      totalElements: number;
+      totalPages: number;
     };
   };
   responses: never;
@@ -51,9 +64,11 @@ export interface components {
 export type $defs = Record<string, never>;
 
 export interface operations {
-  getProducts: {
+  searchProducts: {
     parameters: {
       query?: {
+        categoryId?: string;
+        keyword?: string;
         page?: number;
         size?: number;
       };

@@ -3,7 +3,9 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/shared/api/client";
 import { type ProductPage, productPageSchema } from "../model/product.schema";
 
-type ProductListParams = {
+export type ProductListParams = {
+  categoryId?: string;
+  keyword?: string;
   page?: number;
   size?: number;
 };

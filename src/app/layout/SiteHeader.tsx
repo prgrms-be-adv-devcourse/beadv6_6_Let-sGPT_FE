@@ -1,9 +1,37 @@
 import { Link } from "@tanstack/react-router";
 
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { Button } from "@/shared/ui/button";
 
 const navLinkClass =
   "text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground";
+
+function AuthActions() {
+  const member = useAuthStore((state) => state.member);
+  const clear = useAuthStore((state) => state.clear);
+
+  if (member) {
+    return (
+      <>
+        <span className="hidden text-sm sm:inline">{member.nickname}</span>
+        <Button variant="ghost" size="sm" onClick={() => clear()}>
+          로그아웃
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Button asChild variant="ghost" size="sm">
+        <Link to="/login">로그인</Link>
+      </Button>
+      <Button asChild size="sm">
+        <Link to="/signup">회원가입</Link>
+      </Button>
+    </>
+  );
+}
 
 function SellerSelect() {
   // TODO(fe-api): 판매자 목록 조회(member 도메인) — 헤더 판매자 필터. 현재는 비활성 플레이스홀더. [screens/01-home]
@@ -37,11 +65,7 @@ export function SiteHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <SellerSelect />
-          {/* 비로그인 상태 표시. 인증(member 도메인)은 후속 — 현재는 시각 플레이스홀더. */}
-          <Button variant="ghost" size="sm">
-            로그인
-          </Button>
-          <Button size="sm">회원가입</Button>
+          <AuthActions />
         </div>
       </div>
     </header>

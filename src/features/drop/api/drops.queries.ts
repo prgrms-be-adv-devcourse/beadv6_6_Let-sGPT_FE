@@ -1,17 +1,22 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-import { fetchDropsByStatus } from "./drops.api";
+import { type FetchDropsParams, fetchDrops } from "./drops.api";
 
 export const dropQueries = {
   ongoing: () =>
     queryOptions({
       queryKey: ["drops", "ongoing"] as const,
-      queryFn: () => fetchDropsByStatus("OPEN"),
+      queryFn: () => fetchDrops({ status: "OPEN" }),
     }),
   upcoming: () =>
     queryOptions({
       queryKey: ["drops", "upcoming"] as const,
-      queryFn: () => fetchDropsByStatus("REGISTERED"),
+      queryFn: () => fetchDrops({ status: "REGISTERED" }),
+    }),
+  list: (params: FetchDropsParams = {}) =>
+    queryOptions({
+      queryKey: ["drops", "list", params] as const,
+      queryFn: () => fetchDrops(params),
     }),
 };
 
@@ -20,7 +25,12 @@ export function useOngoingDrops() {
   return useQuery(dropQueries.ongoing());
 }
 
-/** 오픈 예정(REGISTERED) 드롭 목록 — 홈 "한정판 오픈 예정 배너". */
+/** 오픈 예정(REGISTERED) 드롭 목록 — 홈 히어로. */
 export function useUpcomingDrops() {
   return useQuery(dropQueries.upcoming());
+}
+
+/** 전체/상태별 드롭 목록 — 드롭 목록 화면. */
+export function useDropList(params: FetchDropsParams = {}) {
+  return useQuery(dropQueries.list(params));
 }

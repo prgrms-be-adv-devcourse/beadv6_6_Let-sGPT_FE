@@ -1,8 +1,8 @@
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
+import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import { useUpcomingDrops } from "../api/drops.queries";
 import { Countdown } from "./Countdown";
-import { DropImage } from "./DropImage";
 
 /** 홈 히어로 — 가장 가까운 오픈 예정 드롭을 카운트다운과 함께 에디토리얼하게 강조. */
 export function HeroDrop() {
@@ -52,7 +52,7 @@ export function HeroDrop() {
 
       <div className="order-1 overflow-hidden rounded-lg bg-surface lg:order-2">
         <div className="aspect-[16/10] lg:aspect-[4/5]">
-          <DropImage name={nextDrop?.productName ?? "openAt"} />
+          <ImagePlaceholder name={nextDrop?.productName ?? "openAt"} />
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { formatKrw } from "@/shared/lib/format";
+import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import type { DropCard as DropCardModel } from "../model/drop.schema";
-import { DropImage } from "./DropImage";
 import { DropStatusBadge } from "./DropStatusBadge";
 import { StockBar } from "./StockBar";
 
@@ -12,7 +12,7 @@ export function DropCard({ drop }: { drop: DropCardModel }) {
     <article data-testid="drop-card" className="group flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-surface">
         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-          <DropImage name={drop.productName} />
+          <ImagePlaceholder name={drop.productName} />
         </div>
         <DropStatusBadge status={drop.status} className="absolute top-3 left-3" />
       </div>
