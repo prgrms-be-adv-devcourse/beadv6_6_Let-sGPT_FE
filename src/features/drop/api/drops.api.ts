@@ -1,7 +1,10 @@
+import { z } from "zod";
+
 import { apiFetch } from "@/shared/api/http";
 import {
   type DropCard,
   type DropCardPage,
+  type DropCreateBody,
   type DropStatus,
   dropCardPageSchema,
   dropCardSchema,
@@ -55,4 +58,9 @@ export async function fetchDrops(params: FetchDropsParams = {}): Promise<DropCar
 // TODO(fe-api): GET /api/v1/drops/{id} 단건 조회도 BE 미구현 → provisional(드롭 상세 화면).
 export function getDrop(id: string): Promise<DropCard> {
   return apiFetch(`/api/v1/drops/${id}`, dropCardSchema, { auth: false });
+}
+
+/** 드롭 생성(POST /drops) — scoped 토큰 필요. 201+Location, 본문 없음. */
+export function createDrop(body: DropCreateBody, token: string): Promise<void> {
+  return apiFetch("/api/v1/drops", z.void(), { method: "POST", body, token });
 }

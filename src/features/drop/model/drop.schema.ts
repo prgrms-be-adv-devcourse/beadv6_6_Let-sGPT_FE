@@ -28,3 +28,51 @@ export type DropCard = z.infer<typeof dropCardSchema>;
 
 export const dropCardPageSchema = pageResponseSchema(dropCardSchema);
 export type DropCardPage = z.infer<typeof dropCardPageSchema>;
+
+// ── 판매자 드롭 생성 폼 (BE DropCreateRequest 제약과 일치) ──────────────────
+const requiredDigits = (label: string) =>
+  z
+    .string()
+    .min(1, `${label}을(를) 입력하세요.`)
+    .refine(
+      (value) => /^\d+$/.test(value) && Number(value) > 0,
+      `${label}은(는) 0보다 큰 숫자여야 합니다.`,
+    );
+
+export const dropFormSchema = z
+  .object({
+    dropPrice: requiredDigits("판매가"),
+    totalQuantity: requiredDigits("총 수량"),
+    limitPerUser: z
+      .string()
+      .refine((value) => value === "" || (/^\d+$/.test(value) && Number(value) > 0), "1 이상 숫자"),
+    openAt: z.string().min(1, "오픈 시각을 선택하세요."),
+    closeAt: z.string(),
+  })
+  .refine((values) => values.closeAt === "" || new Date(values.closeAt) > new Date(values.openAt), {
+    message: "종료 시각은 오픈 시각 이후여야 합니다.",
+    path: ["closeAt"],
+  });
+export type DropFormValues = z.infer<typeof dropFormSchema>;
+
+/** BE 로 보낼 드롭 생성 본문 — `DropCreateRequest`(시각은 ISO Instant). */
+export type DropCreateBody = {
+  productId: string;
+  dropPrice: number;
+  totalQuantity: number;
+  limitPerUser?: number;
+  openAt: string;
+  closeAt?: string;
+};
+
+/** datetime-local 폼값 → ISO 본문(빈 값 생략). */
+export function toDropCreateBody(productId: string, values: DropFormValues): DropCreateBody {
+  return {
+    productId,
+    dropPrice: Number(values.dropPrice),
+    totalQuantity: Number(values.totalQuantity),
+    ...(values.limitPerUser ? { limitPerUser: Number(values.limitPerUser) } : {}),
+    openAt: new Date(values.openAt).toISOString(),
+    ...(values.closeAt ? { closeAt: new Date(values.closeAt).toISOString() } : {}),
+  };
+}

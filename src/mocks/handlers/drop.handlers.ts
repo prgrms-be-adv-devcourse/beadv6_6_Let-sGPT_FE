@@ -1,7 +1,8 @@
 import { HttpResponse, http } from "msw";
 
-import type { DropCardPage } from "@/features/drop/model/drop.schema";
+import type { DropCard, DropCardPage } from "@/features/drop/model/drop.schema";
 import { drops, findDrop } from "../data/drops";
+import { findProduct } from "../data/products";
 
 export const dropHandlers = [
   http.get("*/api/v1/drops", ({ request }) => {
@@ -57,5 +58,42 @@ export const dropHandlers = [
       );
     }
     return HttpResponse.json(drop);
+  }),
+
+  http.post("*/api/v1/drops", async ({ request }) => {
+    const body = (await request.json()) as {
+      productId: string;
+      dropPrice: number;
+      totalQuantity: number;
+      limitPerUser?: number;
+      openAt: string;
+      closeAt?: string;
+    };
+    const product = findProduct(body.productId);
+    if (!product) {
+      return HttpResponse.json(
+        { error: "PRODUCT_NOT_FOUND", message: "상품을 찾을 수 없습니다." },
+        { status: 404 },
+      );
+    }
+    const id = crypto.randomUUID();
+    // 오픈 시각이 지났으면 OPEN, 아니면 REGISTERED(예정)로 파생.
+    const status: DropCard["status"] = new Date(body.openAt) <= new Date() ? "OPEN" : "REGISTERED";
+    const created: DropCard = {
+      id,
+      productId: product.id,
+      productName: product.name,
+      categoryId: product.categoryId,
+      categoryName: product.categoryName,
+      thumbnailKey: product.thumbnailKey,
+      dropPrice: body.dropPrice,
+      totalQuantity: body.totalQuantity,
+      remainingQuantity: body.totalQuantity,
+      status,
+      openAt: body.openAt,
+      closeAt: body.closeAt ?? null,
+    };
+    drops.unshift(created);
+    return new HttpResponse(null, { status: 201, headers: { Location: `/api/v1/drops/${id}` } });
   }),
 ];

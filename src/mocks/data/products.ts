@@ -1,7 +1,7 @@
 import type { Product } from "@/features/product/model/product.schema";
 import { categories } from "./categories";
 
-const SELLER_ID = "11111111-1111-1111-1111-111111111111";
+export const SELLER_ID = "11111111-1111-1111-1111-111111111111";
 
 const PRODUCT_NAMES = [
   "오버사이즈 후디 차콜",

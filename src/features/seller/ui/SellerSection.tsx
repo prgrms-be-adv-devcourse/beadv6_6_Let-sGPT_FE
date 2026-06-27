@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
@@ -25,7 +26,14 @@ export function SellerSection() {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h3 className="font-medium">내 판매자 정보</h3>
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="font-medium">내 판매자 정보</h3>
+          {sellers.data && sellers.data.length > 0 ? (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/seller/products">상품 관리</Link>
+            </Button>
+          ) : null}
+        </div>
         {sellers.isPending ? (
           <p className="text-muted-foreground text-sm">불러오는 중…</p>
         ) : sellers.data && sellers.data.length > 0 ? (

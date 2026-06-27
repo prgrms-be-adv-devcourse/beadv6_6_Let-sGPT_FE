@@ -1,6 +1,9 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { type FetchDropsParams, fetchDrops, getDrop } from "./drops.api";
+import { exchangeScopedToken } from "@/features/auth/api/auth.api";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import type { DropCreateBody } from "../model/drop.schema";
+import { createDrop, type FetchDropsParams, fetchDrops, getDrop } from "./drops.api";
 
 export const dropQueries = {
   ongoing: () =>
@@ -43,4 +46,20 @@ export function useDropList(params: FetchDropsParams = {}) {
 /** 드롭 단건 — 드롭 상세 화면. */
 export function useDrop(id: string) {
   return useQuery(dropQueries.detail(id));
+}
+
+/** 드롭 생성(판매자) — scoped 토큰 교환 후 POST /drops. 성공 시 드롭 캐시 무효화. */
+export function useCreateDrop() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { sellerInfoId: string; body: DropCreateBody }) => {
+      const subjectToken = useAuthStore.getState().accessToken;
+      if (!subjectToken) {
+        throw new Error("로그인이 필요합니다.");
+      }
+      const token = await exchangeScopedToken({ subjectToken, sellerInfoId: input.sellerInfoId });
+      return createDrop(input.body, token);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drops"] }),
+  });
 }
