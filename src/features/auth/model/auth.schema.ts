@@ -50,3 +50,19 @@ export const signupFormSchema = z
     path: ["confirmPassword"],
   });
 export type SignupFormValues = z.infer<typeof signupFormSchema>;
+
+/** 회원 정보 수정 폼 — 비밀번호는 입력했을 때만 변경(빈 값이면 미변경). */
+export const profileFormSchema = z
+  .object({
+    nickname: z.string().min(1, "닉네임을 입력하세요.").max(30, "닉네임은 30자 이하여야 합니다."),
+    password: z
+      .string()
+      .max(64, "비밀번호는 64자 이하여야 합니다.")
+      .refine((value) => value === "" || value.length >= 8, "비밀번호는 8자 이상이어야 합니다."),
+    confirmPassword: z.string(),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다.",
+    path: ["confirmPassword"],
+  });
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;

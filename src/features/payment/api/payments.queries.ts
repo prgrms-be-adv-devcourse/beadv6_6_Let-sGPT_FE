@@ -6,6 +6,7 @@ import {
   confirmWalletCharge,
   createPayment,
   getRefundHistories,
+  getWalletBalance,
   requestRefund,
 } from "./payments.api";
 
@@ -16,6 +17,15 @@ export const refundQueries = {
       queryFn: () => getRefundHistories(params),
     }),
 };
+
+export const walletQueries = {
+  balance: () =>
+    queryOptions({ queryKey: ["wallet", "balance"] as const, queryFn: getWalletBalance }),
+};
+
+export function useWalletBalance() {
+  return useQuery(walletQueries.balance());
+}
 
 export function useRefundHistories(params: { page?: number; size?: number } = {}) {
   return useQuery(refundQueries.histories(params));
@@ -38,11 +48,19 @@ export function useConfirmPayment() {
 }
 
 export function useChargeWallet() {
-  return useMutation({ mutationFn: chargeWallet });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: chargeWallet,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wallet"] }),
+  });
 }
 
 export function useConfirmWalletCharge() {
-  return useMutation({ mutationFn: confirmWalletCharge });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: confirmWalletCharge,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wallet"] }),
+  });
 }
 
 export function useRequestRefund() {
@@ -52,6 +70,7 @@ export function useRequestRefund() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["refunds"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
     },
   });
 }

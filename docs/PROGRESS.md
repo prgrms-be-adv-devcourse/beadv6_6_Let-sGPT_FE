@@ -19,23 +19,23 @@
 - Docker 실(實)BE: `dev.yml`/`full.yml` 모두 ghcr 사전빌드 이미지(인증 필요)라 미사용. **MSW 기반 연동 테스트가 현재 표준.** 게이트웨이 가동 시 `corepack pnpm codegen`으로 `schema.d.ts` 실타입 교체 가능.
 
 ## 완료된 것
-- **화면**: `/`(홈: 히어로+카운트다운+진행중 드롭), `/products`·`/drops`(카탈로그: 좌측 카테고리 고정 + 필터(정렬) 드로어 + 상태탭(드롭) + 검색 토글 + 페이지네이션), `/login`·`/signup`.
+- **화면**: `/`(홈: 히어로+카운트다운+진행중 드롭), `/products`·`/drops`(카탈로그: 좌측 카테고리 고정 + 필터(정렬) 드로어 + 상태탭(드롭) + 검색 토글 + 페이지네이션), `/login`·`/signup`, `/products/$id`·`/drops/$id`(상세→구매), `/checkout/$orderId`(결제), `/orders/$orderId/complete`(완료), `/orders`·`/orders/$orderId`(주문 목록·상세), **`/mypage`(내정보·주문·지갑·환불이력·판매자 전환 — 좌측 탭 내비)**.
 - **디자인 시스템**: `docs/design-system.md`(에디토리얼 미니멀 화이트 + 블루 X, 모노크롬 + `--live` 버밀리언, Pretendard + Instrument Serif). `scrollbar-gutter: stable`.
 - **공용**: `shared/api/http.ts`(`apiFetch`), `pagination`, `shared/ui`(button/card/input/label/form/sheet/ImagePlaceholder/FilterChip/Pagination/CatalogLayout).
 - **피처(model/api/queries)**: auth(member: signup/login/refresh/logout/me/update + `authStore`), product(목록/상세 API), drop(provisional 목록/상세), category(provisional), order(생성/조회/목록/취소), payment(결제/확인/환불/지갑충전/이력), seller(판매자정보 CRUD). queries 미작성 피처는 api 위에 훅만 추가하면 됨.
 - **목**: `src/mocks/data/`(categories 6종, products 16종 **실이미지 thumbnailKey=picsum**, drops 10종, `mockDb` 상태저장) + `handlers/`(product/drop/category/member/seller/order/payment) — **주문→결제(WALLET 즉시/PG confirm)→완료→환불→지갑** 흐름이 목에서 일관 동작. 테스트 격리는 `resetMockDb`(setup afterEach).
-- 검증: typecheck/lint/**test 19개**/build green.
+- 검증: typecheck/lint/**test 22개**/build green.
 
 ## 남은 화면 (구현 순서 권장: 고객 플로우 → 판매자/관리자)
 | # | 라우트(제안) | 핵심 BE | 메모 |
 |---|---|---|---|
-| 03 상품 상세 | `/products/$id` | `GET /api/v1/products/{id}` | 이미지 크게, 설명, (연관 드롭은 provisional) |
-| 05 드롭 상세 | `/drops/$id` | `GET /drops/{id}`(provisional) + `POST /orders` | 재고바·카운트다운·1인한도, **구매→주문생성→/checkout 이동** |
-| 06 결제 | `/checkout/$orderId` 또는 주문생성 후 | `POST /orders`→`POST /payments`(WALLET/PG) (+`/payments/confirm`) | PG는 토스 SDK 대신 **모의 confirm**. 결제수단 선택·만료 카운트다운 |
-| 07 주문 완료 | `/orders/$id/complete` | `GET /orders/{id}` | 성공 화면 + 주문번호 |
-| 08 주문 목록 | `/orders` | `GET /api/v1/orders?status&page&size` | 상태 필터·페이징, 카드/행 |
-| 09 주문 상세 | `/orders/$id` | `GET /orders/{id}` + `POST /orders/{id}/cancel` | 취소(PENDING)/환불요청(COMPLETED), `POST /refunds` |
-| 10 마이페이지 | `/mypage` | `GET /members/me`·`PATCH`, `GET /wallet`(provisional)·`/wallet/charge`, `/refunds/histories`, `POST /seller/me` | 내정보/지갑/환불이력/**판매자 전환**(전환 후 refresh 필요 안내) |
+| ~~03 상품 상세~~ | `/products/$id` | `GET /api/v1/products/{id}` | ✅ 완료 |
+| ~~05 드롭 상세~~ | `/drops/$id` | `GET /drops/{id}`(provisional) + `POST /orders` | ✅ 완료 |
+| ~~06 결제~~ | `/checkout/$orderId` | `POST /payments`(WALLET/PG) (+`/payments/confirm`) | ✅ 완료 |
+| ~~07 주문 완료~~ | `/orders/$orderId/complete` | `GET /orders/{id}` | ✅ 완료 |
+| ~~08 주문 목록~~ | `/orders` | `GET /api/v1/orders?status&page&size` | ✅ 완료 |
+| ~~09 주문 상세~~ | `/orders/$orderId` | `GET /orders/{id}` + `POST /orders/{id}/cancel` | ✅ 완료 |
+| ~~10 마이페이지~~ | `/mypage` | `GET /members/me`·`PATCH`, `GET /wallet`·`/wallet/charge`, `/refunds/histories`, `GET/POST /seller/me` | ✅ 완료(좌측 탭: 내정보/주문/지갑/환불/판매자) |
 | 14 상품 등록 | `/seller/products/new` | `POST /auth/token`(scoped)→`POST /api/v1/products` | **scoped 토큰 교환 흐름** 필요. `ProductCreateRequest` 필드 BE 재확인 |
 | 12 상품 관리 | `/seller/products` | `GET /products?...`(내 sellerId 필터) | 판매자 콘솔 레이아웃 |
 | 13 상품 관리 상세 | `/seller/products/$id` | `PATCH/DELETE /products/{id}` + `POST /drops` | 수정/삭제 + **드롭 생성**(productId, dropPrice, totalQuantity, limitPerUser?, openAt, closeAt?) |

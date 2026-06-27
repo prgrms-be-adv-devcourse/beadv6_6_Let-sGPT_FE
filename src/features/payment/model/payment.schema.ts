@@ -44,3 +44,7 @@ export const walletChargeResponseSchema = z.object({
   status: walletChargeStatusSchema,
 });
 export type WalletChargeResponse = z.infer<typeof walletChargeResponseSchema>;
+
+/** 지갑 잔액 조회 — BE 미구현(provisional). */
+export const walletBalanceSchema = z.object({ balance: z.number() });
+export type WalletBalance = z.infer<typeof walletBalanceSchema>;

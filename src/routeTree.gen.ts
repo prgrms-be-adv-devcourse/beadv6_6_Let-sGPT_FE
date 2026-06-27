@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as SignupRouteImport } from "./routes/signup";
+import { Route as MypageRouteImport } from "./routes/mypage";
 import { Route as LoginRouteImport } from "./routes/login";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
@@ -24,6 +25,11 @@ import { Route as OrdersOrderIdCompleteRouteImport } from "./routes/orders/$orde
 const SignupRoute = SignupRouteImport.update({
   id: "/signup",
   path: "/signup",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const MypageRoute = MypageRouteImport.update({
+  id: "/mypage",
+  path: "/mypage",
   getParentRoute: () => rootRouteImport,
 } as any);
 const LoginRoute = LoginRouteImport.update({
@@ -80,6 +86,7 @@ const OrdersOrderIdCompleteRoute = OrdersOrderIdCompleteRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
+  "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
+  "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
   "/login": typeof LoginRoute;
+  "/mypage": typeof MypageRoute;
   "/signup": typeof SignupRoute;
   "/checkout/$orderId": typeof CheckoutOrderIdRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/login"
+    | "/mypage"
     | "/signup"
     | "/checkout/$orderId"
     | "/drops/$id"
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/login"
+    | "/mypage"
     | "/signup"
     | "/checkout/$orderId"
     | "/drops/$id"
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | "__root__"
     | "/"
     | "/login"
+    | "/mypage"
     | "/signup"
     | "/checkout/$orderId"
     | "/drops/$id"
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   LoginRoute: typeof LoginRoute;
+  MypageRoute: typeof MypageRoute;
   SignupRoute: typeof SignupRoute;
   CheckoutOrderIdRoute: typeof CheckoutOrderIdRoute;
   DropsIdRoute: typeof DropsIdRoute;
@@ -180,6 +193,13 @@ declare module "@tanstack/react-router" {
       path: "/signup";
       fullPath: "/signup";
       preLoaderRoute: typeof SignupRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/mypage": {
+      id: "/mypage";
+      path: "/mypage";
+      fullPath: "/mypage";
+      preLoaderRoute: typeof MypageRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/login": {
@@ -258,6 +278,7 @@ declare module "@tanstack/react-router" {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  MypageRoute: MypageRoute,
   SignupRoute: SignupRoute,
   CheckoutOrderIdRoute: CheckoutOrderIdRoute,
   DropsIdRoute: DropsIdRoute,

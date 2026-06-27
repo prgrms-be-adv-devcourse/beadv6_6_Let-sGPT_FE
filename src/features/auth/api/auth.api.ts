@@ -1,3 +1,4 @@
+import { apiFetch } from "@/shared/api/http";
 import {
   type Member,
   memberSchema,
@@ -58,4 +59,14 @@ export async function meRequest(accessToken: string): Promise<Member> {
     throw new Error(await readErrorMessage(response, "내 정보를 불러오지 못했습니다."));
   }
   return memberSchema.parse(await response.json());
+}
+
+/** 내 정보 조회(GET /me) — 토큰은 apiFetch 가 provider 로 주입. */
+export function getMe(): Promise<Member> {
+  return apiFetch("/api/v1/members/me", memberSchema);
+}
+
+/** 회원 정보 수정(PATCH /me) — nickname·password 부분 갱신. */
+export function updateMember(body: { nickname?: string; password?: string }): Promise<Member> {
+  return apiFetch("/api/v1/members/me", memberSchema, { method: "PATCH", body });
 }

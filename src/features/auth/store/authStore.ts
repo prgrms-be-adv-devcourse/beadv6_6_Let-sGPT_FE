@@ -8,6 +8,7 @@ type AuthState = {
   refreshToken: string | null;
   member: Member | null;
   setSession: (token: TokenResponse, member: Member) => void;
+  setMember: (member: Member) => void;
   clear: () => void;
 };
 
@@ -24,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: token.refreshToken,
           member,
         }),
+      setMember: (member) => set({ member }),
       clear: () => set({ accessToken: null, refreshToken: null, member: null }),
     }),
     { name: "openat-auth" },

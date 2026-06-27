@@ -1,8 +1,31 @@
-import { useMutation } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { LoginFormValues, SignupFormValues } from "../model/auth.schema";
 import { useAuthStore } from "../store/authStore";
-import { loginRequest, meRequest, signupRequest } from "./auth.api";
+import { getMe, loginRequest, meRequest, signupRequest, updateMember } from "./auth.api";
+
+export const memberQueries = {
+  me: () => queryOptions({ queryKey: ["members", "me"] as const, queryFn: getMe }),
+};
+
+/** 로그인 사용자의 최신 회원정보(서버 기준) — 마이페이지 표기. */
+export function useMe() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  return useQuery({ ...memberQueries.me(), enabled: Boolean(accessToken) });
+}
+
+/** 회원 정보 수정 → 성공 시 캐시·세션 스토어를 함께 갱신. */
+export function useUpdateMember() {
+  const queryClient = useQueryClient();
+  const setMember = useAuthStore((state) => state.setMember);
+  return useMutation({
+    mutationFn: updateMember,
+    onSuccess: (member) => {
+      setMember(member);
+      queryClient.setQueryData(memberQueries.me().queryKey, member);
+    },
+  });
+}
 
 /** 로그인 → 토큰 발급 후 /me 로 회원정보를 받아 세션에 저장. */
 export function useLogin() {

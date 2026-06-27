@@ -16,7 +16,9 @@ function AuthActions() {
         <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
           <Link to="/orders">주문</Link>
         </Button>
-        <span className="hidden text-sm sm:inline">{member.nickname}</span>
+        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <Link to="/mypage">{member.nickname}</Link>
+        </Button>
         <Button variant="ghost" size="sm" onClick={() => clear()}>
           로그아웃
         </Button>

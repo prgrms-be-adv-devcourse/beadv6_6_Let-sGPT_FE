@@ -7,7 +7,9 @@ import {
   type RefundResponse,
   refundHistorySchema,
   refundResponseSchema,
+  type WalletBalance,
   type WalletChargeResponse,
+  walletBalanceSchema,
   walletChargeResponseSchema,
 } from "../model/payment.schema";
 
@@ -59,6 +61,11 @@ export function getRefundHistories(
   return apiFetch("/api/v1/refunds/histories", refundHistorySchema, {
     query: { page: params.page, size: params.size },
   });
+}
+
+/** 지갑 잔액 조회(GET /wallet, provisional). */
+export function getWalletBalance(): Promise<WalletBalance> {
+  return apiFetch("/api/v1/wallet", walletBalanceSchema);
 }
 
 export function chargeWallet(input: {
