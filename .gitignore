@@ -19,6 +19,7 @@ test-results/
 # editor / OS
 *.local
 .DS_Store
+.idea/
 
 # Claude Code 개인 설정(공유 설정은 .claude/settings.json 만 커밋)
 .claude/settings.local.json
