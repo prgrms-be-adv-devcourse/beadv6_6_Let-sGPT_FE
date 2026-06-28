@@ -4,6 +4,7 @@
 > openAt(플랫폼)의 프론트엔드 **디자인 지침**이다. 모든 화면·컴포넌트는 이 결을 따른다.
 > 토큰의 단일 출처는 [`src/app/styles/globals.css`](../src/app/styles/globals.css) — 여기만 바꾸면 전역에 전파된다.
 > **와이어프레임(`screens/`)은 "무엇을 담을지"의 참고일 뿐,** 배치·형식은 이 시스템에 맞춰 자유롭게 재구성한다.
+> 변경·추가 시 해당 유형의 **최신 트렌드를 리서치한 뒤 이 결에 맞춰** 적용한다(절차는 `AGENTS.md` §3).
 
 ## 0. 원칙 (Quiet Luxury / Editorial Minimal)
 
@@ -41,28 +42,58 @@
 |---|---|---|
 | 디스플레이 | **Instrument Serif** (`font-serif`) | 브랜드 워드마크, 큰 라틴 헤드라인, 이미지 이니셜 액센트 |
 | 본문·UI·**한글** | **Pretendard** (`font-sans`) | 거의 모든 텍스트, 한글 헤드라인 포함 |
+| 금액 합계 | **Newsreader** (`font-numeric`) | 지갑 잔액·정산 합계 등 큰 금액 — 세리프보다 차분한 숫자 표기 |
 
 - **한글은 세리프 폴백이 없다.** Instrument Serif는 라틴 전용이라 한글 헤드라인은 Pretendard로 렌더된다 → 이는 의도된 선택(모던 한국 커머스 관행). 세리프는 **라틴/브랜드/이니셜 액센트에 한정**, 한글 본문에 세리프를 강제하지 않는다.
-- **숫자(가격·수량·카운트다운)는 `tabular-nums`** — 자리 흔들림 방지.
+- **숫자(가격·수량·카운트다운)는 `tabular-nums`** — 자리 흔들림 방지. 큰 금액 합계(지갑·정산)는 `font-numeric tabular-nums` 로 한 톤 차분하게.
 - 스케일(가이드): 히어로 `text-5xl~6xl`(serif) · 섹션 제목 `text-3xl~4xl` · eyebrow `text-xs uppercase tracking-[0.25em] text-muted-foreground` · 본문 `text-sm~base`.
 - 웨이트: Pretendard 400/500/600, Instrument Serif 400. **굵기 남발 금지** — 위계는 크기·색·여백으로.
 
 ## 3. 레이아웃 & 스페이싱
 
 - 컨테이너 `max-w-7xl`, 좌우 `px-6`. 메인 세로 `py-10 sm:py-14`.
-- 섹션 리듬: 페이지 `space-y-20 sm:space-y-28`, 섹션 내부 `space-y-8`.
+- 섹션 리듬: 콘텐츠 페이지 `space-y-10~12`, 섹션 내부 `space-y-6~8`. 큰 랜딩 히어로만 더 크게.
 - 구분: 섹션 헤더 하단 헤어라인(`border-b`), 헤더/푸터 `border`. 박스보다 **선과 여백**.
-- 라운드: `--radius 0.5rem`. 카드 `rounded-md~lg`, 버튼 `rounded-md`. 과한 둥글림(pill) 지양.
+- 라운드: `--radius 0.5rem` 기준. 기본 `rounded-md~lg`, 칩·세그먼트·드롭다운 트리거·상태 닷은 `rounded-full`, 팝오버·모달·KPI 카드는 `rounded-xl~2xl`. 절제하되 둥글림 자체는 허용.
 
 ## 4. 컴포넌트 패턴
 
-- **헤더**: `sticky top-0` + `bg-background/80 backdrop-blur` + `border-b`. 세리프 워드마크 + 대문자 트래킹 내비(`uppercase tracking-[0.18em]`).
-- **상품/드롭 카드**: 이미지 우선. `aspect-[4/5]` 이미지 → 아래 이름·가격·메타. 보더/섀도우 최소. hover 시 이미지 `group-hover:scale-[1.04] transition-transform duration-700 ease-out`.
-- **상태 태그**(`DropStatusBadge`): `rounded-full border bg-background/80 backdrop-blur`. 진행중(OPEN)은 `--live` **펄스 점**(`animate-ping`)으로 "지금 라이브".
-- **재고바**(`StockBar`): 1px 트랙 + 판매율 채움. 남은 비율 ≤15%면 `text-live`/`bg-live`로 "마감 임박".
+### 4.1 공용 컨트롤 (새로 만들기 전에 먼저 확인)
+
+| 컨트롤 | 용도 |
+|---|---|
+| `SegmentedControl` | 선택형 필터. `variant="underline"`=텍스트 탭(카테고리 등 보조, 한 줄 넘으면 아래로 wrap) / `variant="solid"`=캡슐 세그먼트(상호배타 주 필터) |
+| `MenuSelect` | 모던 커스텀 드롭다운(네이티브 select 대체). 고스트 트리거(라벨이 셰브론에 붙는 우측 정렬) + 팝오버. `align="responsive"`(기본)로 모바일 잘림 방지 |
+| `MonthPicker` | 달력형 월 선택(연도 이동 + 12개월 그리드). `""`=전체 월 |
+| `Tag` | 카테고리·메타용 소프트 칩(`bg-foreground/[0.05]`, 테두리 없음) |
+| `DropStatusPill` | 드롭 상태 닷 + 라벨(배경 없음). OPEN 만 `--live` 펄스 닷 |
+| `Dialog` / `ConfirmDialog` | 중앙 모달(`rounded-2xl`) / 파괴적 액션 확인 모달 |
+| `ImagePlaceholder` | 썸네일 자리. `src` 있으면 이미지, 없으면 웜 그라데이션 + 세리프 이니셜 |
+| `ImageGallery` · `CatalogLayout` · `Pagination` | 상세 갤러리 · 카탈로그 셸 · 페이지네이션 |
+
+> 폐기됨(재도입 금지): `FilterChip`·`FilterSelect`(→ `SegmentedControl`/`MenuSelect`), `DropStatusBadge`(→ `DropStatusPill`).
+
+### 4.2 레이아웃·표시 패턴
+
+- **헤더**: `sticky top-0` + `bg-background/80 backdrop-blur` + `border-b`. 세리프 워드마크 + 영문 대문자 트래킹 내비(`Drops`·`Shop`·`Orders`·`Admin`, `uppercase tracking-[0.18em]`) + 닉네임 링크 + 로그인/회원가입/로그아웃.
+- **목록 툴바**: `sticky` + `border-b` 한 줄. **카테고리(좌, `SegmentedControl variant="underline"`, `lg:flex-1`)** + **상태·정렬(우, `MenuSelect`, `items-center`)**. 모바일은 세로로 쌓이고 컨트롤이 좌측 정렬되므로 `MenuSelect`/`MonthPicker` 는 `align="responsive"`(또는 `left`)로 팝오버 잘림을 막는다.
+- **상품/드롭 카드**: 이미지 우선. `aspect-[4/5]`(목록) → 이름·가격·메타. 카테고리는 `Tag`, **판매자명은 `muted-foreground` 보조 텍스트**. hover 시 이미지 `group-hover:scale-[1.03~1.04] duration-700 ease-out`.
+- **상태 표시**: 드롭 상태는 `DropStatusPill`. 정산 등 결과 상태 펠릿은 **소프트 틴티드** — 완료=`bg-foreground/[0.06]`, 대기=`bg-muted`, 실패=`bg-destructive/10 text-destructive`. 채도색은 진행중/실패 신호에만.
+- **데이터 화면(정산 등)**: 인라인 세그먼트 탭 + 필터 줄(`MenuSelect`/`MonthPicker`) + **KPI 요약 카드**(`rounded-2xl border`, `font-numeric` 헤드라인) + **클린 테이블**(`rounded-2xl` 셸, `divide-y` 헤어라인, `bg-surface/60` 헤더, 금액은 우측정렬 `tabular-nums`).
+- **재고바**: 1px 트랙 + 판매율 채움. 남은 비율 낮으면(≤15%) `bg-live`로 "마감 임박".
 - **카운트다운**(`Countdown`): `tabular-nums` 큰 숫자 + 작은 대문자 라벨.
-- **버튼**(shadcn): `primary`=블랙 솔리드(주 CTA 1개), `outline`/`ghost`=보조. 한 영역에 검은 버튼은 하나만.
-- **이미지 플레이스홀더**(`DropImage`): 실제 썸네일 전까지 웜 그라데이션 + 큰 세리프 이니셜로 "의도된 빈자리".
+
+### 4.3 액션·입력 규율
+
+- **버튼**: `primary`=블랙 솔리드(주 CTA, 한 영역에 하나), `outline`/`ghost`=보조.
+- **아이콘 버튼**: 자명한 액션은 아이콘만 — 편집=`Pencil`, 삭제=`Trash`, 닫기=`X`, 대표 지정=`Star`. 반드시 `aria-label`(+ `title`). 필터·탭에는 장식 아이콘을 넣지 않는다.
+- **드롭다운**: 필터/액션 선택은 `MenuSelect`(모던 팝오버). **네이티브 `<select>` 는 폼 입력에만.**
+- **모달**: 확인이 필요한 파괴적 액션은 `ConfirmDialog`. 이미지 추가는 `Dialog` + 다중 이미지 + 대표(썸네일) 선택(`ProductImageField`) — BE 는 단일 `thumbnailKey` 저장이라 추가분은 provisional.
+
+### 4.4 정보 구조(IA)
+
+- **마이페이지**: 좌측 그룹 내비(`쇼핑` = 내 정보·주문·지갑·환불 / `판매` = 판매자 정보·상품 관리·드롭 관리·정산). 판매 그룹은 활성 판매자 정보가 있어야 열린다.
+- 같은 판매 기능은 `/seller/*` 콘솔 라우트에서도 **동일 컴포넌트를 재사용**한다(마이페이지 탭과 공용).
 
 ## 5. 모션
 
@@ -77,6 +108,7 @@
 
 - 전역 톤 변경: `src/app/styles/globals.css` 의 `:root`/`.dark` + `@theme inline` 만 수정 → 전 컴포넌트 전파.
 - 새 컴포넌트: 위 패턴과 시드(`features/drop/ui/*`, `shared/ui/*`)의 결을 따른다.
+- 새 컨트롤이 필요하면 §4.1 에 이미 있는지 먼저 확인 → 없으면 `shared/ui` 에 추가하고 이 표를 갱신한다.
 
 ## 출처 (2026 트렌드 리서치)
 

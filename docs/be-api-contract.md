@@ -42,9 +42,13 @@
 | POST | `/api/v1/products` | `ProductCreateRequest` | 201+Location | **scoped** |
 | PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **scoped** |
 | DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **scoped** |
+| ⚠️ GET 본인 상품 목록 | (없음) | — | `PageResponse<ProductResponse>` | **`TODO(fe-api)`** SELLER |
 
 - `ProductResponse{ id, sellerId, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, createdAt }`
 - `ProductCreateRequest`(확인 필요): `name, description, categoryId?, price?, thumbnailKey?` 추정 — 구현 시 BE 재확인.
+- **판매자명 없음**: 응답에 storeName/sellerName 이 없어 카드·상세의 판매자 표기는 provisional(`TODO(fe-api)`).
+- **이미지 단일**: `thumbnailKey` 하나뿐 → **갤러리(`imageKeys`)·이미지 업로드 미지원**(`TODO(fe-api)`). FE 추가 이미지는 상태 보관.
+- **본인 상품 목록 조회 미구현** → 상품 관리(12)는 provisional(`/api/v1/products/me`) + Zod 로 구동, BE 마커 필요.
 
 ## drop (드롭)
 | M·P | 경로 | 요청 | 응답 | 인증 |
@@ -53,7 +57,7 @@
 | DELETE | `/api/v1/drops/{dropId}` | - | 204 | **scoped** |
 | ⚠️ GET 조회 | (없음) | — | — | **`TODO(fe-api)`** |
 
-- **구매자용 드롭 목록/상세 조회 API 미구현(2순위).** FE 는 provisional(`/api/v1/drops`) + Zod 로 구동, BE 마커 필요.
+- **구매자용 드롭 목록/상세 조회 API 미구현(2순위).** FE 는 provisional(`/api/v1/drops`) + Zod 로 구동, BE 마커 필요. 응답에 **판매자명(sellerName)·카테고리명** 포함 필요(현재 provisional). 판매자 본인 드롭 목록도 미제공.
 - 드롭 상태 파생: DB 엔 `REGISTERED/CLOSE`만, `OPEN/SOLD_OUT` 은 시각+재고로 런타임 파생. 1인 한도 `limitPerUser`(null=무제한).
 
 ## category (카테고리, product 모듈)
@@ -116,6 +120,6 @@
 - 정산식: `netSettlement = paidAmount - feeAmount - refundAmount`. 월 1일 03:00 배치(전월).
 
 ## FE 통합 메모
-- 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key).
-- 미구현 BE(드롭 조회/카테고리 조회/지갑 잔액)는 `// TODO(fe-api)` + MSW provisional.
+- 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key + Zod 경계 검증).
+- 미구현 BE(`// TODO(fe-api)` + MSW provisional): **드롭 조회**(목록·상세), **카테고리 조회**, **지갑 잔액**, **판매자 본인 상품/드롭 목록**, **판매자명**(product·drop 응답의 storeName/sellerName), **상품 갤러리/이미지 업로드**. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
 - PG 결제는 실제 토스 SDK 대신 FE 에선 **모의 결제(MSW)** 로 confirm 흐름만 재현.

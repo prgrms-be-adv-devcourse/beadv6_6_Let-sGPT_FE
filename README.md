@@ -3,6 +3,8 @@
 한정판 드롭 커머스 **openAt**(팀 Let'sGPT)의 프론트엔드. 별도 Spring BE(MSA)의 API를 소비하는 **React 19 + Vite SPA**.
 사람은 스택·와이어프레임을 정의하고, 구현은 에이전트가 검증 루프(타입·테스트·시각)를 돌며 수행한다.
 
+> 현재: 와이어프레임 전 화면(01~16) 구현 + 디자인 확정 완료. 실 BE 연동 전까지 **MSW** 로 전 플로우가 동작한다.
+
 - 작전 지시서(에이전트 진입점): [`AGENTS.md`](./AGENTS.md)
 - 디자인 지침: [`docs/design-system.md`](./docs/design-system.md)
 - 설계 근거(하네스 엔지니어링): [`docs/frontend-harness-guide.md`](./docs/frontend-harness-guide.md)
@@ -41,7 +43,7 @@ src/
   routes/     TanStack 파일 기반 라우트(얇은 진입점) → routeTree.gen.ts(자동생성, 수정 금지)
   features/   기능 단위 코로케이션 — <도메인>/{model,api,queries,ui}
               (auth · product · drop · category · order · payment · seller · settlement)
-  shared/     공통 — ui(shadcn) · lib · api(openapi-fetch client + 코드젠 schema)
+  shared/     공통 — ui(shadcn + 공용 컨트롤) · lib · api(apiFetch: 인증·Idempotency·Zod 경계 + openapi-fetch client/코드젠 schema)
   mocks/      MSW 핸들러(browser/server)
   test/       Vitest 셋업
 e2e/          Playwright 스펙
@@ -49,11 +51,11 @@ e2e/          Playwright 스펙
 
 ## API 계약
 
-게이트웨이 통합 스펙 `GET $VITE_API_BASE_URL/v3/api-docs/all` 에서 타입을 코드젠한다.
+런타임 경계는 `shared/api/http.ts` 의 **`apiFetch`(Authorization·Idempotency-Key 자동 + Zod 검증)** 다. BE 계약의 단일 기준 문서는 [`docs/be-api-contract.md`](./docs/be-api-contract.md).
+게이트웨이 통합 스펙 `GET $VITE_API_BASE_URL/v3/api-docs/all` 에서 타입을 코드젠할 수 있다.
 
 ```bash
 corepack pnpm codegen      # → src/shared/api/schema.d.ts (자동생성, 수정 금지)
 ```
 
-> 현재 `schema.d.ts` 는 게이트웨이 미가동 상태에서 시드가 컴파일되도록 최소 경로만 채운 **플레이스홀더**다.
-> 게이트웨이를 띄운 뒤 코드젠을 1회 돌려 실제 스펙으로 교체한다(가이드 §6.1).
+> 현재 `schema.d.ts` 는 게이트웨이 미가동 상태에서 컴파일되도록 최소 경로만 채운 **플레이스홀더**이고, 미구현 BE 조회는 `// TODO(fe-api)` + MSW provisional 로 운용한다. 게이트웨이를 띄운 뒤 코드젠을 1회 돌려 실제 스펙으로 교체한다(가이드 §6.1).
