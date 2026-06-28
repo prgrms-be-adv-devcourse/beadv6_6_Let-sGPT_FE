@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { SellerAuth } from "@/features/auth/api/auth.api";
 import { apiFetch } from "@/shared/api/http";
 import {
   type DropCard,
@@ -60,7 +61,12 @@ export function getDrop(id: string): Promise<DropCard> {
   return apiFetch(`/api/v1/drops/${id}`, dropCardSchema, { auth: false });
 }
 
-/** 드롭 생성(POST /drops) — scoped 토큰 필요. 201+Location, 본문 없음. */
-export function createDrop(body: DropCreateBody, token: string): Promise<void> {
-  return apiFetch("/api/v1/drops", z.void(), { method: "POST", body, token });
+/** 드롭 생성(POST /drops) — 판매자 토큰 필요. 201+Location, 본문 없음. */
+export function createDrop(body: DropCreateBody, auth: SellerAuth): Promise<void> {
+  return apiFetch("/api/v1/drops", z.void(), {
+    method: "POST",
+    body,
+    token: auth.token,
+    reauth: auth.reauth,
+  });
 }

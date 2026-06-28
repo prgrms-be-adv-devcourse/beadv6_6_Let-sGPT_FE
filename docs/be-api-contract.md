@@ -1,12 +1,12 @@
 # openAt BE API 계약 (FE 통합 레퍼런스)
 
 > 게이트웨이 `http://localhost:8000`. 코드젠 전까지 이 문서가 통합 기준이다(게이트웨이 가동 후 `pnpm codegen` 으로 대체).
-> 표기: `UUID/Instant/LocalDateTime → string`, `long/int → number`. 인증 = 게이트웨이가 JWT 검증 후 `X-User-Id`/`X-User-Roles` 주입 → FE 는 `Authorization: Bearer <accessToken>` 만 실어 보냄.
+> 표기: `UUID/Instant/LocalDateTime → string`, `long/int → number`. 인증 = 게이트웨이가 JWT 검증 후 `X-User-Id`/`X-User-Roles` 주입 → FE 는 `Authorization: Bearer` 로 토큰 전달(회원 토큰 기본, 판매자 write 는 스토어 범위 판매자 토큰 — §인증·권한).
 
 ## 인증·권한
 - 토큰: member 가 RS256 JWT 발급(`accessToken`/`refreshToken`). roles 클레임 = `USER`/`SELLER`/`ADMIN` 중 **현재 1개**.
 - 판매자 승격: `POST /api/v1/seller/me`(USER 가능) → 이후 **refresh/재로그인 해야 roles=SELLER 토큰** 획득.
-- 상품/드롭 write(판매자)는 **scoped 토큰** 필요: `POST /auth/token`(form, RFC8693)으로 access→scoped 교환(`audience=openat-product`, `scope=product:write`, `resource=urn:openat:seller:{sellerInfoId}`).
+- 상품/드롭 write(판매자)는 **스토어 범위 판매자 토큰** 필요(회원 JWT 와 별도, `sellerInfoId` 단위). FE 주도 계약(BE 미구현, `TODO(fe-api)` 예정): `POST /api/v1/auth/seller-token {sellerInfoId} → {tokenType, accessToken, expiresIn}`(회원 JWT 인증, 짧은 수명). 활성 스토어 전환 시 재발급 — 상세 `auth.md`.
 - 쓰기(주문/결제/환불/충전)는 **`Idempotency-Key` 헤더**(주문은 body `idempotencyKey`) 필수.
 
 ## member (회원/인증)
@@ -39,9 +39,9 @@
 |---|---|---|---|---|
 | GET | `/api/v1/products?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>` | - |
 | GET | `/api/v1/products/{id}` | - | `ProductResponse` | - |
-| POST | `/api/v1/products` | `ProductCreateRequest` | 201+Location | **scoped** |
-| PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **scoped** |
-| DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **scoped** |
+| POST | `/api/v1/products` | `ProductCreateRequest` | 201+Location | **판매자토큰** |
+| PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **판매자토큰** |
+| DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **판매자토큰** |
 | ⚠️ GET 본인 상품 목록 | (없음) | — | `PageResponse<ProductResponse>` | **`TODO(fe-api)`** SELLER |
 
 - `ProductResponse{ id, sellerId, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, createdAt }`
@@ -53,8 +53,8 @@
 ## drop (드롭)
 | M·P | 경로 | 요청 | 응답 | 인증 |
 |---|---|---|---|---|
-| POST | `/api/v1/drops` | `{productId, dropPrice, totalQuantity, limitPerUser?, openAt, closeAt?}` | 201+Location | **scoped** |
-| DELETE | `/api/v1/drops/{dropId}` | - | 204 | **scoped** |
+| POST | `/api/v1/drops` | `{productId, dropPrice, totalQuantity, limitPerUser?, openAt, closeAt?}` | 201+Location | **판매자토큰** |
+| DELETE | `/api/v1/drops/{dropId}` | - | 204 | **판매자토큰** |
 | ⚠️ GET 조회 | (없음) | — | — | **`TODO(fe-api)`** |
 
 - **구매자용 드롭 목록/상세 조회 API 미구현(2순위).** FE 는 provisional(`/api/v1/drops`) + Zod 로 구동, BE 마커 필요. 응답에 **판매자명(sellerName)·카테고리명** 포함 필요(현재 provisional). 판매자 본인 드롭 목록도 미제공.

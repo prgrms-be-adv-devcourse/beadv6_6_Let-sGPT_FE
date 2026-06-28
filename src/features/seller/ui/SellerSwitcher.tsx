@@ -3,7 +3,8 @@ import { Check, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
-import { useMySellerInfos } from "../api/sellers.queries";
+import { switchActiveSeller, useMySellerInfos } from "../api/sellers.queries";
+import { useActiveSellerStore } from "../store/activeSellerStore";
 
 /**
  * 헤더 판매자(스토어) 전환기 — 회원이 가진 여러 SellerInfo 중 활성 스토어를 고른다.
@@ -13,7 +14,7 @@ import { useMySellerInfos } from "../api/sellers.queries";
 export function SellerSwitcher() {
   const { data } = useMySellerInfos();
   const stores = data ?? [];
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const activeId = useActiveSellerStore((state) => state.activeSellerId);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -35,10 +36,9 @@ export function SellerSwitcher() {
 
   if (stores.length === 0) return null;
 
-  // 활성 스토어를 기본 선택값으로(없으면 첫 항목).
-  // TODO(fe-api): 서버 활성 스토어 전환 엔드포인트 연동 — 현재 선택은 헤더 클라이언트 상태.
+  // 활성 스토어(클라 SSOT activeSellerId 우선 → 서버 active → 첫 항목).
   const active =
-    stores.find((store) => store.id === selectedId) ??
+    stores.find((store) => store.id === activeId) ??
     stores.find((store) => store.active) ??
     stores[0];
   if (!active) return null;
@@ -67,7 +67,7 @@ export function SellerSwitcher() {
                     key={store.id}
                     type="button"
                     onClick={() => {
-                      setSelectedId(store.id);
+                      switchActiveSeller(store.id);
                       setOpen(false);
                     }}
                     className={cn(

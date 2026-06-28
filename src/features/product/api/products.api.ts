@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { SellerAuth } from "@/features/auth/api/auth.api";
 import { apiFetch } from "@/shared/api/http";
 import {
   type ProductPage,
@@ -16,17 +17,31 @@ export function getMyProducts(params: { page?: number; size?: number } = {}): Pr
   });
 }
 
-/** 상품 등록(POST /products) — scoped 토큰 필요. 201+Location, 본문 없음. */
-export function createProduct(body: ProductWriteBody, token: string): Promise<void> {
-  return apiFetch("/api/v1/products", z.void(), { method: "POST", body, token });
+/** 상품 등록(POST /products) — 판매자 토큰 필요. 201+Location, 본문 없음. */
+export function createProduct(body: ProductWriteBody, auth: SellerAuth): Promise<void> {
+  return apiFetch("/api/v1/products", z.void(), {
+    method: "POST",
+    body,
+    token: auth.token,
+    reauth: auth.reauth,
+  });
 }
 
-/** 상품 수정(PATCH /products/{id}) — scoped 토큰 필요. 204. */
-export function updateProduct(id: string, body: ProductWriteBody, token: string): Promise<void> {
-  return apiFetch(`/api/v1/products/${id}`, z.void(), { method: "PATCH", body, token });
+/** 상품 수정(PATCH /products/{id}) — 판매자 토큰 필요. 204. */
+export function updateProduct(id: string, body: ProductWriteBody, auth: SellerAuth): Promise<void> {
+  return apiFetch(`/api/v1/products/${id}`, z.void(), {
+    method: "PATCH",
+    body,
+    token: auth.token,
+    reauth: auth.reauth,
+  });
 }
 
-/** 상품 삭제(DELETE /products/{id}) — scoped 토큰 필요. 204(오픈 드롭 있으면 409). */
-export function deleteProduct(id: string, token: string): Promise<void> {
-  return apiFetch(`/api/v1/products/${id}`, z.void(), { method: "DELETE", token });
+/** 상품 삭제(DELETE /products/{id}) — 판매자 토큰 필요. 204(오픈 드롭 있으면 409). */
+export function deleteProduct(id: string, auth: SellerAuth): Promise<void> {
+  return apiFetch(`/api/v1/products/${id}`, z.void(), {
+    method: "DELETE",
+    token: auth.token,
+    reauth: auth.reauth,
+  });
 }

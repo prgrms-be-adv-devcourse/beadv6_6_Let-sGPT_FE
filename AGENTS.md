@@ -1,7 +1,7 @@
 # AGENTS.md — openAt FE 작전 지시서
 
 별도 Spring BE(MSA)의 API 를 소비하는 React SPA(플랫폼 **openAt** · 팀 Let'sGPT). 구현은 검증 루프를 돌며 수행한다.
-설계 근거는 `docs/frontend-harness-guide.md`, **디자인·UX 지침은 `docs/design-system.md`**, BE 계약은 `docs/be-api-contract.md`, 화면 정의는 `screens/`.
+설계 근거는 `docs/frontend-harness-guide.md`, **디자인·UX 지침은 `docs/design-system.md`**, BE 계약은 `docs/be-api-contract.md`, **인증(회원·판매자) 방식은 `docs/auth.md`**, 화면 정의는 `screens/`.
 프로젝트 배경·도메인·서비스 아키텍처가 필요하면 BE 레포 `docs/PROJECT.md`(`../beadv6_6_Let-sGPT_BE/docs/PROJECT.md`)를 참고한다 — 사본은 두지 않는다(동기화 드리프트 방지).
 
 > **상태:** 와이어프레임 전 화면(01~16) 구현 + 디자인 확정 완료. 이후 작업은 기능 추가·수정·실 BE 연동이다. 미구현 BE 조회 API 는 provisional(MSW) + `// TODO(fe-api)` 마커로 운용한다(`product/docs/FE_API_REQUESTS.md` 인덱스).
@@ -42,7 +42,7 @@
 - `noUncheckedIndexedAccess`: 배열 인덱스·구조분해 결과는 `?? 기본값`·옵셔널 체이닝·`as const` 튜플로 좁힌다.
 - `exactOptionalPropertyTypes`: 선택 prop 은 `...(x ? { x } : {})` 로 조건부 전개, 타입은 필요 시 `T | undefined` 명시.
 - `verbatimModuleSyntax`: 타입 임포트는 `import type` / `import { type X }` 로 정확히.
-- 인증: 보호 엔드포인트는 `apiFetch`(토큰 자동). 로그인 직후 `/me` 만 `{ token }` override. **판매자 승격(`POST /seller/me`) 후 roles 갱신은 refresh/재로그인 필요**(FE 안내), 상품/드롭 write 는 scoped 토큰.
+- 인증: 보호 엔드포인트는 `apiFetch`(회원 토큰 자동). 로그인 직후 `/me` 만 `{ token }` override. **판매자 승격(`POST /seller/me`) 후 roles 갱신은 refresh/재로그인 필요**(FE 안내). 상품/드롭 write 는 **스토어 범위 판매자 토큰**(활성 스토어 전환 시 재발급·메모리 보관) — 상세 `docs/auth.md`.
 - 이미지: 목 `thumbnailKey` = picsum URL → `ImagePlaceholder src=`. 실 BE 는 객체 키이므로 URL 변환 지점 필요.
 
 ## 6. 금지 / 승인 게이트

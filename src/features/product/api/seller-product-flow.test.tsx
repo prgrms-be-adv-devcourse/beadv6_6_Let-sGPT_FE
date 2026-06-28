@@ -13,9 +13,14 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-describe("판매자 상품 등록 플로우 (scoped 토큰 교환 + MSW)", () => {
+describe("판매자 상품 등록 플로우 (판매자 토큰 재발급 + MSW)", () => {
   beforeAll(() => {
-    useAuthStore.setState({ accessToken: "mock-access-token" });
+    useAuthStore.setState({
+      accessToken: "mock-access-token",
+      sellerToken: null,
+      sellerTokenStoreId: null,
+      sellerTokenExpiresAt: null,
+    });
   });
 
   it("상품을 등록하면 내 상품 목록(GET /products/me)에 노출된다", async () => {
@@ -38,5 +43,9 @@ describe("판매자 상품 등록 플로우 (scoped 토큰 교환 + MSW)", () =>
     expect(
       result.current.mine.data?.content.some((product) => product.name === "테스트 한정판 후디"),
     ).toBe(true);
+
+    // 등록 직전 해당 스토어 범위 판매자 토큰이 재발급·캐시된다(활성 스토어 = sellerInfoId).
+    expect(useAuthStore.getState().sellerTokenStoreId).toBe("s-1");
+    expect(useAuthStore.getState().sellerToken).toBe("mock-seller-token:s-1");
   });
 });

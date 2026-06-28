@@ -25,6 +25,17 @@ export const tokenResponseSchema = z.object({
 });
 export type TokenResponse = z.infer<typeof tokenResponseSchema>;
 
+/**
+ * 판매자 토큰 재발급 응답 (`POST /api/v1/auth/seller-token`).
+ * 판매자 JWT 는 회원 JWT 와 별도이며 스토어(sellerInfoId) 단위로 발급된다.
+ */
+export const sellerTokenResponseSchema = z.object({
+  tokenType: z.string(),
+  accessToken: z.string(),
+  expiresIn: z.number(),
+});
+export type SellerTokenResponse = z.infer<typeof sellerTokenResponseSchema>;
+
 // ── 폼 스키마 (BE 검증 제약과 일치) ──────────────────────────────────────
 export const loginFormSchema = z.object({
   email: z.string().min(1, "이메일을 입력하세요.").pipe(z.email("올바른 이메일 형식이 아닙니다.")),

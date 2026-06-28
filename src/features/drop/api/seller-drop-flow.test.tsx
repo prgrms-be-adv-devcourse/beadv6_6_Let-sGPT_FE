@@ -14,9 +14,14 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-describe("판매자 드롭 생성 플로우 (scoped 토큰 교환 + MSW)", () => {
+describe("판매자 드롭 생성 플로우 (판매자 토큰 재발급 + MSW)", () => {
   beforeAll(() => {
-    useAuthStore.setState({ accessToken: "mock-access-token" });
+    useAuthStore.setState({
+      accessToken: "mock-access-token",
+      sellerToken: null,
+      sellerTokenStoreId: null,
+      sellerTokenExpiresAt: null,
+    });
   });
 
   it("상품에 드롭을 생성하면 드롭 목록에 추가된다", async () => {

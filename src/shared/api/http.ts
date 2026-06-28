@@ -30,6 +30,11 @@ type ApiFetchOptions = {
   auth?: boolean;
   /** 토큰을 명시적으로 override(로그인 직후 /me 처럼 store 반영 전 호출용). */
   token?: string;
+  /**
+   * 401 응답 시 새 토큰을 발급받아 1회 재시도한다(reactive recovery).
+   * 짧은 수명 토큰(예: 스토어 범위 판매자 토큰)의 proactive 갱신을 보완하는 안전망.
+   */
+  reauth?: () => Promise<string>;
 };
 
 async function toApiError(response: Response): Promise<ApiError> {
@@ -85,7 +90,16 @@ export async function apiFetch<T>(
   if (options.body !== undefined) {
     init.body = JSON.stringify(options.body);
   }
-  const response = await fetch(url, init);
+  let response = await fetch(url, init);
+
+  // 짧은 수명 토큰: 401 이면 새 토큰으로 1회만 재시도(reactive). proactive 갱신이 놓친 만료/폐기 복구.
+  if (response.status === 401 && options.reauth) {
+    const freshToken = await options.reauth();
+    response = await fetch(url, {
+      ...init,
+      headers: { ...headers, Authorization: `Bearer ${freshToken}` },
+    });
+  }
 
   if (!response.ok) {
     throw await toApiError(response);

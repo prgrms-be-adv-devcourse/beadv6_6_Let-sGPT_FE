@@ -9,7 +9,7 @@ type Props = {
 };
 
 /**
- * 판매자 콘솔 게이트 — 활성 판매자정보가 있어야 상품/드롭 write 가 가능(scoped 토큰의 resource).
+ * 판매자 콘솔 게이트 — 활성 판매자정보가 있어야 상품/드롭 write 가 가능(판매자 토큰이 그 스토어 범위로 발급됨).
  * 없으면 마이페이지의 판매자 전환으로 유도한다.
  */
 export function SellerGuard({ children }: Props) {

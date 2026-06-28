@@ -1,7 +1,6 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { exchangeScopedToken } from "@/features/auth/api/auth.api";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { resolveSellerAuth } from "@/features/auth/api/auth.api";
 import { apiClient } from "@/shared/api/client";
 import { apiFetch } from "@/shared/api/http";
 import {
@@ -67,21 +66,12 @@ export function useMyProducts(params: { page?: number; size?: number } = {}) {
   return useQuery(myProductQueries.list(params));
 }
 
-/** 현재 세션 access 토큰을 sellerInfoId 범위 scoped 토큰으로 교환(상품/드롭 write 전 단계). */
-async function scopedTokenFor(sellerInfoId: string): Promise<string> {
-  const subjectToken = useAuthStore.getState().accessToken;
-  if (!subjectToken) {
-    throw new Error("로그인이 필요합니다.");
-  }
-  return exchangeScopedToken({ subjectToken, sellerInfoId });
-}
-
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { sellerInfoId: string; body: ProductWriteBody }) => {
-      const token = await scopedTokenFor(input.sellerInfoId);
-      return createProduct(input.body, token);
+      const auth = await resolveSellerAuth(input.sellerInfoId);
+      return createProduct(input.body, auth);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });
@@ -91,8 +81,8 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { sellerInfoId: string; id: string; body: ProductWriteBody }) => {
-      const token = await scopedTokenFor(input.sellerInfoId);
-      return updateProduct(input.id, input.body, token);
+      const auth = await resolveSellerAuth(input.sellerInfoId);
+      return updateProduct(input.id, input.body, auth);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });
@@ -102,8 +92,8 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { sellerInfoId: string; id: string }) => {
-      const token = await scopedTokenFor(input.sellerInfoId);
-      return deleteProduct(input.id, token);
+      const auth = await resolveSellerAuth(input.sellerInfoId);
+      return deleteProduct(input.id, auth);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });

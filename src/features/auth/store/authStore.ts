@@ -7,8 +7,14 @@ type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   member: Member | null;
+  /** 스토어(sellerInfoId) 범위 판매자 JWT·그 범위·만료시각(ms). 단명이라 메모리에만 보관(persist 제외). */
+  sellerToken: string | null;
+  sellerTokenStoreId: string | null;
+  sellerTokenExpiresAt: number | null;
   setSession: (token: TokenResponse, member: Member) => void;
   setMember: (member: Member) => void;
+  setSellerToken: (token: string, sellerInfoId: string, expiresAt: number) => void;
+  clearSellerToken: () => void;
   clear: () => void;
 };
 
@@ -19,6 +25,9 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       member: null,
+      sellerToken: null,
+      sellerTokenStoreId: null,
+      sellerTokenExpiresAt: null,
       setSession: (token, member) =>
         set({
           accessToken: token.accessToken,
@@ -26,8 +35,32 @@ export const useAuthStore = create<AuthState>()(
           member,
         }),
       setMember: (member) => set({ member }),
-      clear: () => set({ accessToken: null, refreshToken: null, member: null }),
+      setSellerToken: (token, sellerInfoId, expiresAt) =>
+        set({
+          sellerToken: token,
+          sellerTokenStoreId: sellerInfoId,
+          sellerTokenExpiresAt: expiresAt,
+        }),
+      clearSellerToken: () =>
+        set({ sellerToken: null, sellerTokenStoreId: null, sellerTokenExpiresAt: null }),
+      clear: () =>
+        set({
+          accessToken: null,
+          refreshToken: null,
+          member: null,
+          sellerToken: null,
+          sellerTokenStoreId: null,
+          sellerTokenExpiresAt: null,
+        }),
     }),
-    { name: "openat-auth" },
+    {
+      name: "openat-auth",
+      // 판매자 토큰은 단명·스토어 범위라 영속화하지 않는다(메모리 전용, 전환 시 재발급).
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        member: state.member,
+      }),
+    },
   ),
 );

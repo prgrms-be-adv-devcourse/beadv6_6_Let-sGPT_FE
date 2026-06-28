@@ -49,14 +49,14 @@ export const memberHandlers = [
     return HttpResponse.json(demoMember);
   }),
 
-  // RFC 8693 scoped 토큰 교환(판매자 product write). 실제 BE 는 form-urlencoded.
-  http.post("*/auth/token", () =>
-    HttpResponse.json({
-      access_token: "mock-scoped-token",
-      issued_token_type: "urn:ietf:params:oauth:token-type:jwt",
-      token_type: "Bearer",
-      expires_in: 120,
-      scope: "product:write",
-    }),
-  ),
+  // 판매자 토큰 재발급(스토어 범위) — BE 미구현 provisional.
+  // 실제 BE 는 회원 JWT 인증 + sellerInfoId 범위의 판매자 JWT 발급(회원 JWT 와 별도).
+  http.post("*/api/v1/auth/seller-token", async ({ request }) => {
+    const body = (await request.json()) as { sellerInfoId?: string };
+    return HttpResponse.json({
+      tokenType: "Bearer",
+      accessToken: `mock-seller-token:${body.sellerInfoId ?? "unknown"}`,
+      expiresIn: 120,
+    });
+  }),
 ];
