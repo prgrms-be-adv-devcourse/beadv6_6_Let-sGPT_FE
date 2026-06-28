@@ -32,7 +32,10 @@
   --accent: oklch(0.967 0.003 75);
   --accent-foreground: oklch(0.205 0.004 75);
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0.001 75);
   --live: oklch(0.62 0.21 25);
+  /* 모달·시트 스크림(테마 무관 — 항상 어둡게). */
+  --overlay: oklch(0 0 0 / 0.4);
   --border: oklch(0.92 0.004 75);
   --input: oklch(0.92 0.004 75);
   --ring: oklch(0.205 0.004 75);
@@ -55,6 +58,7 @@
   --accent: oklch(0.27 0.004 75);
   --accent-foreground: oklch(0.97 0.002 75);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0.001 75);
   --live: oklch(0.68 0.19 25);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
@@ -88,7 +92,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-live: var(--live);
+  --color-overlay: var(--overlay);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

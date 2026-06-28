@@ -36,7 +36,7 @@ export function RefundHistorySection() {
         {histories.data.content.map((refund) => (
           <li key={refund.refundId} className="flex items-center justify-between gap-4 py-4">
             <div className="min-w-0 space-y-1">
-              <p className="font-medium tabular-nums">{REFUND_STATUS_LABEL[refund.status]}</p>
+              <p className="font-medium">{REFUND_STATUS_LABEL[refund.status]}</p>
               <p className="truncate text-muted-foreground text-xs tabular-nums">
                 결제 {refund.paymentId}
               </p>

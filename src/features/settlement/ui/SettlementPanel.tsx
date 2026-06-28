@@ -52,7 +52,10 @@ function StatusBadge({ status }: { status: string }) {
         : "bg-muted text-muted-foreground";
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 font-medium text-xs leading-none ${tone}`}
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-1 font-medium text-xs leading-none",
+        tone,
+      )}
     >
       {STATUS_LABEL[status] ?? status}
     </span>
@@ -166,7 +169,7 @@ export function SettlementPanel({ scope }: { scope: SettlementScope }) {
             size="sm"
             className="ml-auto"
             disabled={retry.isPending}
-            onClick={() => retry.mutate(month || "202604")}
+            onClick={() => retry.mutate(month)}
           >
             {retry.isPending ? "재시도 중…" : "실패 정산 재시도"}
           </Button>

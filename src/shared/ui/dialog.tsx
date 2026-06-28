@@ -25,7 +25,7 @@ function DialogContent({
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay
         className={cn(
-          "fixed inset-0 z-50 bg-black/40 backdrop-blur-sm",
+          "fixed inset-0 z-50 bg-overlay backdrop-blur-sm",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=open]:animate-in",
         )}
       />

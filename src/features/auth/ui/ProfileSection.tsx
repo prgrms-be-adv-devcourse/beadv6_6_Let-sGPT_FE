@@ -27,13 +27,14 @@ export function ProfileSection() {
     defaultValues: { nickname: member?.nickname ?? "", password: "", confirmPassword: "" },
   });
 
-  // 서버 닉네임이 도착하면 폼 기본값을 동기화(사용자가 수정 중이 아닐 때만).
+  // 서버 닉네임이 도착하면 폼 기본값을 동기화 — 단, 사용자가 수정 중(dirty)이면 입력을 덮어쓰지 않는다.
   const { reset } = form;
+  const isDirty = form.formState.isDirty;
   useEffect(() => {
-    if (member) {
+    if (member && !isDirty) {
       reset({ nickname: member.nickname, password: "", confirmPassword: "" });
     }
-  }, [member, reset]);
+  }, [member, isDirty, reset]);
 
   function onSubmit(values: ProfileFormValues) {
     const body: { nickname?: string; password?: string } = {};
@@ -46,10 +47,13 @@ export function ProfileSection() {
     if (Object.keys(body).length === 0) {
       return;
     }
+    // 비밀번호 입력은 성공 시에만 비운다 — 실패하면 입력을 보존해 재시도 가능하게.
     update.mutate(body, {
-      onSuccess: () => form.setValue("password", ""),
+      onSuccess: () => {
+        form.setValue("password", "");
+        form.setValue("confirmPassword", "");
+      },
     });
-    form.setValue("confirmPassword", "");
   }
 
   if (!member) {
@@ -61,7 +65,7 @@ export function ProfileSection() {
       <dl className="grid gap-px overflow-hidden rounded-lg border bg-border text-sm">
         <div className="flex items-center justify-between bg-card px-4 py-3">
           <dt className="text-muted-foreground">이메일</dt>
-          <dd className="tabular-nums">{member.email}</dd>
+          <dd>{member.email}</dd>
         </div>
         <div className="flex items-center justify-between bg-card px-4 py-3">
           <dt className="text-muted-foreground">권한</dt>

@@ -41,8 +41,8 @@ export function SellerSection() {
                 <span
                   className={
                     seller.active
-                      ? "rounded-full border border-live/40 px-2.5 py-0.5 text-live text-xs"
-                      : "rounded-full border px-2.5 py-0.5 text-muted-foreground text-xs"
+                      ? "rounded-full bg-foreground/[0.06] px-2.5 py-0.5 font-medium text-foreground text-xs"
+                      : "rounded-full bg-muted px-2.5 py-0.5 font-medium text-muted-foreground text-xs"
                   }
                 >
                   {seller.active ? "활성" : "비활성"}
