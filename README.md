@@ -44,8 +44,6 @@ corepack pnpm install      # 의존성 설치 (+ git 훅 설치)
 corepack pnpm dev          # 개발 서버 → http://localhost:5173
 ```
 
-기본값(`.env`)은 `VITE_API_MOCKING=enabled` — **MSW가 네트워크를 가로채** 실 BE 없이 전 화면이 동작한다.
-
 ### 검증 루프
 
 | 명령 | 역할 | 비고 |
