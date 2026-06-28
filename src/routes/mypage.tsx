@@ -78,6 +78,13 @@ function MyPage() {
     if (seller.isPending) {
       return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
     }
+    if (seller.isError) {
+      return (
+        <p className="py-16 text-center text-destructive text-sm">
+          판매자 정보를 불러오지 못했습니다.
+        </p>
+      );
+    }
     if (!seller.sellerInfo) {
       return (
         <div className="py-16 text-center">

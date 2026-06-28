@@ -83,6 +83,7 @@ function ProductListPage() {
           <div className="relative">
             <Search className="-translate-y-1/2 absolute top-1/2 left-0 size-4 text-muted-foreground" />
             <input
+              aria-label="상품명 검색"
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
               placeholder="상품명 검색"
@@ -98,7 +99,11 @@ function ProductListPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {products.isPending ? (
+        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+      ) : products.isError ? (
+        <p className="py-16 text-center text-destructive text-sm">상품을 불러오지 못했습니다.</p>
+      ) : filtered.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground text-sm">
           조건에 맞는 상품이 없습니다.
         </p>

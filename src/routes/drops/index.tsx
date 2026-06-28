@@ -107,7 +107,11 @@ function DropListPage() {
         </div>
       </div>
 
-      {rows.length === 0 && !featured ? (
+      {drops.isPending ? (
+        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+      ) : drops.isError ? (
+        <p className="py-16 text-center text-destructive text-sm">드롭을 불러오지 못했습니다.</p>
+      ) : rows.length === 0 && !featured ? (
         <p className="py-16 text-center text-muted-foreground text-sm">해당하는 드롭이 없습니다.</p>
       ) : (
         <ol className="-mt-2">
