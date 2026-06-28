@@ -2,7 +2,7 @@ import { HttpResponse, http } from "msw";
 
 import type { DropCard, DropCardPage } from "@/features/drop/model/drop.schema";
 import { drops, findDrop } from "../data/drops";
-import { findProduct } from "../data/products";
+import { findProduct, products, SELLER_ID } from "../data/products";
 
 export const dropHandlers = [
   http.get("*/api/v1/drops", ({ request }) => {
@@ -48,7 +48,28 @@ export const dropHandlers = [
     return HttpResponse.json(body);
   }),
 
-  // TODO(fe-api): 드롭 단건 조회는 BE 미구현 → provisional. DropApiSpec 에 GET /api/v1/drops/{id} 요청.
+  // 판매자 본인 드롭 목록(GET /drops/me) — 활성 스토어 기준(목은 내 상품의 드롭). BE searchMyDrops.
+  // `/drops/:id` 보다 먼저 등록해야 id="me" 로 잡히지 않는다.
+  http.get("*/api/v1/drops/me", ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get("page") ?? "0");
+    const size = Number(url.searchParams.get("size") ?? "20");
+    const myProductIds = new Set(
+      products.filter((product) => product.sellerId === SELLER_ID).map((product) => product.id),
+    );
+    const mine = drops.filter((drop) => myProductIds.has(drop.productId));
+    const start = page * size;
+    const body: DropCardPage = {
+      content: mine.slice(start, start + size),
+      page,
+      size,
+      totalElements: mine.length,
+      totalPages: Math.max(1, Math.ceil(mine.length / size)),
+    };
+    return HttpResponse.json(body);
+  }),
+
+  // 드롭 단건 조회(GET /drops/{id}) — BE 구현됨(DropController.getDrop).
   http.get("*/api/v1/drops/:id", ({ params }) => {
     const drop = findDrop(String(params.id));
     if (!drop) {

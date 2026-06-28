@@ -11,12 +11,9 @@ import {
   dropCardSchema,
 } from "../model/drop.schema";
 
-// TODO(fe-api): GET /api/v1/drops?status={REGISTERED|OPEN|CLOSE|SOLD_OUT}&page&size -> PageResponse<DropCardResponse>
-//   필요: 홈(진행중/오픈예정) + 드롭 목록 화면. BE DropController 는 POST/DELETE(command)만 → 조회(read) 미구현.
-//   응답 가정: Drop(dropPrice·totalQuantity·openAt·closeAt·status) + 표시용 product(productName·thumbnailKey)
-//             + 재고 게이트키퍼의 remainingQuantity. [screens/01-home, screens/04-drop-list]
-//
-// 코드젠 스펙에 위 경로가 없으므로 잠정적으로 fetch 를 직접 쓴다. 게이트웨이에 조회 API가 생기면 apiClient 로 이관.
+// 드롭 목록 조회(GET /api/v1/drops) — BE 구현됨(DropController.searchDrops). 홈(진행중/오픈예정) + 드롭 목록.
+//   응답: Drop(dropPrice·totalQuantity·openAt·closeAt·status) + 표시용 product(productName·thumbnailKey·sellerName)
+//   + 재고 게이트키퍼의 remainingQuantity. 코드젠 스펙에 잡히기 전까지 apiFetch(경로 직접 + Zod 경계)로 호출. [screens/01·04]
 
 export type FetchDropsParams = {
   status?: DropStatus;
@@ -27,36 +24,36 @@ export type FetchDropsParams = {
   size?: number;
 };
 
-export async function fetchDrops(params: FetchDropsParams = {}): Promise<DropCardPage> {
-  const url = new URL("/api/v1/drops", import.meta.env.VITE_API_BASE_URL);
-  if (params.status) {
-    url.searchParams.set("status", params.status);
-  }
-  if (params.categoryId) {
-    url.searchParams.set("categoryId", params.categoryId);
-  }
-  if (params.keyword) {
-    url.searchParams.set("keyword", params.keyword);
-  }
-  if (params.sort) {
-    url.searchParams.set("sort", params.sort);
-  }
-  if (params.page !== undefined) {
-    url.searchParams.set("page", String(params.page));
-  }
-  if (params.size !== undefined) {
-    url.searchParams.set("size", String(params.size));
-  }
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`드롭 목록 조회에 실패했습니다 (http=${response.status}).`);
-  }
-  // 신뢰 경계: 응답을 Zod 로 검증한다(§6.1).
-  return dropCardPageSchema.parse(await response.json());
+export function fetchDrops(params: FetchDropsParams = {}): Promise<DropCardPage> {
+  // 공개 조회(비로그인 허용) — getDrop 과 동일하게 apiFetch(auth:false)로 통일.
+  return apiFetch("/api/v1/drops", dropCardPageSchema, {
+    auth: false,
+    query: {
+      status: params.status,
+      categoryId: params.categoryId,
+      keyword: params.keyword,
+      sort: params.sort,
+      page: params.page,
+      size: params.size,
+    },
+  });
 }
 
-// TODO(fe-api): GET /api/v1/drops/{id} 단건 조회도 BE 미구현 → provisional(드롭 상세 화면).
+/** 판매자 본인 드롭 목록(GET /api/v1/drops/me) — 활성 스토어 기준(인증 회원). BE 구현됨(searchMyDrops). [screens/12·13] */
+export function getMyDrops(params: FetchDropsParams = {}): Promise<DropCardPage> {
+  return apiFetch("/api/v1/drops/me", dropCardPageSchema, {
+    query: {
+      status: params.status,
+      categoryId: params.categoryId,
+      keyword: params.keyword,
+      sort: params.sort,
+      page: params.page,
+      size: params.size,
+    },
+  });
+}
+
+/** 드롭 단건 조회(GET /api/v1/drops/{id}) — BE 구현됨(DropController.getDrop). 공개 조회. */
 export function getDrop(id: string): Promise<DropCard> {
   return apiFetch(`/api/v1/drops/${id}`, dropCardSchema, { auth: false });
 }

@@ -2,7 +2,7 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/r
 
 import { resolveSellerAuth } from "@/features/auth/api/auth.api";
 import type { DropCreateBody } from "../model/drop.schema";
-import { createDrop, type FetchDropsParams, fetchDrops, getDrop } from "./drops.api";
+import { createDrop, type FetchDropsParams, fetchDrops, getDrop, getMyDrops } from "./drops.api";
 
 export const dropQueries = {
   ongoing: () =>
@@ -45,6 +45,16 @@ export function useDropList(params: FetchDropsParams = {}) {
 /** 드롭 단건 — 드롭 상세 화면. */
 export function useDrop(id: string) {
   return useQuery(dropQueries.detail(id));
+}
+
+/** 판매자 본인 드롭 목록(/drops/me) — 드롭 관리 콘솔(활성 스토어 기준). */
+export function useMyDrops(params: FetchDropsParams = {}) {
+  return useQuery(
+    queryOptions({
+      queryKey: ["drops", "me", params] as const,
+      queryFn: () => getMyDrops(params),
+    }),
+  );
 }
 
 /** 드롭 생성(판매자) — 판매자(스토어 범위) 토큰으로 POST /drops. 성공 시 드롭 캐시 무효화. */

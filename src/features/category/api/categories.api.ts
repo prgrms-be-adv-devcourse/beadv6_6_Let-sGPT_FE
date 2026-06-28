@@ -3,14 +3,10 @@ import { z } from "zod";
 import { apiFetch } from "@/shared/api/http";
 import { type Category, categoryListSchema } from "../model/category.schema";
 
-// TODO(fe-api): GET /api/v1/categories -> Category[] (id·name). 상품/드롭 목록의 카테고리 필터에 필요.
-//   BE CategoryController 는 POST/PATCH/DELETE(command)만 노출 → 조회(read) 미구현. [screens/02-product-list]
-export async function fetchCategories(): Promise<Category[]> {
-  const response = await fetch(new URL("/api/v1/categories", import.meta.env.VITE_API_BASE_URL));
-  if (!response.ok) {
-    throw new Error("카테고리를 불러오지 못했습니다.");
-  }
-  return categoryListSchema.parse(await response.json());
+// 카테고리 목록 조회(GET /api/v1/categories) — BE 구현됨(CategoryController.getCategories, 이름순). 공개 조회.
+export function fetchCategories(): Promise<Category[]> {
+  // 공개 조회(상품·드롭 카탈로그 필터) — apiFetch(auth:false)로 통일.
+  return apiFetch("/api/v1/categories", categoryListSchema, { auth: false });
 }
 
 /** 카테고리 등록(POST /categories, ADMIN) — 201+Location, 본문 없음. */
