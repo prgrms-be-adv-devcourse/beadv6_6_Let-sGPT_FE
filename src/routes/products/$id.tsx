@@ -32,7 +32,7 @@ function ProductDetailPage() {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <ImageGallery images={buildGallery(item.thumbnailKey)} name={item.name} />
+        <ImageGallery images={buildGallery(item.thumbnailKey, item.imageKeys)} name={item.name} />
       </div>
 
       <div className="space-y-6">

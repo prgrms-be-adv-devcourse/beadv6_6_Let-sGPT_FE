@@ -10,6 +10,7 @@ type ProductWriteBody = {
   categoryId?: string;
   price?: number;
   thumbnailKey?: string;
+  imageKeys?: string[];
 };
 
 function paginate(list: Product[], page: number, size: number): ProductPage {
@@ -24,7 +25,18 @@ function paginate(list: Product[], page: number, size: number): ProductPage {
 }
 
 export const productHandlers = [
-  // TODO(fe-api): 판매자 본인 상품 목록(provisional). BE 에 sellerId 필터/`/products/me` 추가 필요.
+  // 상품 이미지 업로드(BE: 로컬 파일 저장 → { key, url }). 목은 키만 발급.
+  http.post("*/api/v1/products/images", () => {
+    const key = `mock-${crypto.randomUUID()}.jpg`;
+    return HttpResponse.json({ key, url: `/api/v1/products/images/${key}` });
+  }),
+
+  // 상품 이미지 조회 — 목은 키 기반 picsum 으로 리다이렉트해 실제 이미지를 보여준다.
+  http.get("*/api/v1/products/images/:key", ({ params }) => {
+    const seed = encodeURIComponent(String(params.key));
+    return HttpResponse.redirect(`https://picsum.photos/seed/${seed}/640/800`, 302);
+  }),
+
   http.get("*/api/v1/products/me", ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") ?? "0");
@@ -97,6 +109,7 @@ export const productHandlers = [
       categoryName: category?.name ?? null,
       price: body.price ?? null,
       thumbnailKey: body.thumbnailKey ?? null,
+      imageKeys: body.imageKeys ?? [],
       createdAt: new Date().toISOString(),
     });
     return new HttpResponse(null, { status: 201, headers: { Location: `/api/v1/products/${id}` } });
@@ -118,6 +131,7 @@ export const productHandlers = [
     product.categoryName = category?.name ?? null;
     product.price = body.price ?? null;
     product.thumbnailKey = body.thumbnailKey ?? null;
+    product.imageKeys = body.imageKeys ?? [];
     return new HttpResponse(null, { status: 204 });
   }),
 

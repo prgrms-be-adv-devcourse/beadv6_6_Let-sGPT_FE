@@ -39,9 +39,9 @@ function NewProductPage() {
             submitLabel="상품 등록"
             pending={create.isPending}
             errorMessage={create.isError ? create.error.message : undefined}
-            onSubmit={(values) =>
+            onSubmit={(values, imageKeys) =>
               create.mutate(
-                { sellerInfoId, body: toProductWriteBody(values) },
+                { sellerInfoId, body: toProductWriteBody(values, imageKeys) },
                 { onSuccess: () => navigate({ to: "/seller/products" }) },
               )
             }

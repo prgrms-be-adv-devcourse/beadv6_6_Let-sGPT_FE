@@ -74,8 +74,10 @@ export async function apiFetch<T>(
     }
   }
 
+  const isFormData = options.body instanceof FormData;
   const headers: Record<string, string> = {};
-  if (options.body !== undefined) {
+  if (options.body !== undefined && !isFormData) {
+    // FormData(멀티파트)는 브라우저가 boundary 포함 Content-Type 을 직접 설정하도록 둔다.
     headers["Content-Type"] = "application/json";
   }
   if (options.idempotencyKey) {
@@ -88,7 +90,7 @@ export async function apiFetch<T>(
 
   const init: RequestInit = { method: options.method ?? "GET", headers };
   if (options.body !== undefined) {
-    init.body = JSON.stringify(options.body);
+    init.body = isFormData ? (options.body as FormData) : JSON.stringify(options.body);
   }
   let response = await fetch(url, init);
 

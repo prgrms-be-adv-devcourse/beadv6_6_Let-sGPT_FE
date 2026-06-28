@@ -14,15 +14,17 @@ const controlClass =
 
 type Props = {
   defaultValues: ProductFormValues;
+  defaultImageKeys?: string[];
   submitLabel: string;
   pending: boolean;
   errorMessage?: string | undefined;
-  onSubmit: (values: ProductFormValues) => void;
+  onSubmit: (values: ProductFormValues, imageKeys: string[]) => void;
 };
 
 /** 상품 등록·수정 공용 폼 — BE ProductCreate/UpdateRequest 필드와 1:1. */
 export function ProductForm({
   defaultValues,
+  defaultImageKeys = [],
   submitLabel,
   pending,
   errorMessage,
@@ -34,15 +36,22 @@ export function ProductForm({
     defaultValues,
   });
 
-  // 추가 이미지는 FE 상태로 보관(BE 는 대표=thumbnailKey 만 저장). 수정 시 기존 썸네일로 초기화.
-  const [images, setImages] = useState<string[]>(() =>
-    defaultValues.thumbnailKey ? [defaultValues.thumbnailKey] : [],
-  );
+  // 갤러리 이미지 키(대표 thumbnailKey + 추가 imageKeys). 수정 시 기존 이미지로 초기화.
+  const [images, setImages] = useState<string[]>(() => {
+    const initial = [defaultValues.thumbnailKey, ...defaultImageKeys].filter((key): key is string =>
+      Boolean(key),
+    );
+    return [...new Set(initial)];
+  });
   const thumbnail = form.watch("thumbnailKey");
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <form
+        onSubmit={form.handleSubmit((values) => onSubmit(values, images))}
+        className="space-y-5"
+        noValidate
+      >
         <FormField
           control={form.control}
           name="name"

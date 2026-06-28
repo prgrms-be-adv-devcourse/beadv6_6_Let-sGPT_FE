@@ -3,14 +3,14 @@ import { z } from "zod";
 import type { SellerAuth } from "@/features/auth/api/auth.api";
 import { apiFetch } from "@/shared/api/http";
 import {
+  type ImageUpload,
+  imageUploadSchema,
   type ProductPage,
   type ProductWriteBody,
   productPageSchema,
 } from "../model/product.schema";
 
-// TODO(fe-api): GET /api/v1/products/me -> PageResponse<ProductResponse> (X-User-Id 기준 판매자 본인 상품).
-//   BE ProductSearchRequest 에 sellerId 필터가 없어 판매자 콘솔(상품 관리) 목록을 만들 수 없다 → provisional.
-//   [screens/12-seller-products]
+// 판매자 본인 상품 목록(GET /api/v1/products/me) — BE 구현됨(searchMyProducts, 활성 스토어 기준). [screens/12]
 export function getMyProducts(params: { page?: number; size?: number } = {}): Promise<ProductPage> {
   return apiFetch("/api/v1/products/me", productPageSchema, {
     query: { page: params.page, size: params.size },
@@ -44,4 +44,14 @@ export function deleteProduct(id: string, auth: SellerAuth): Promise<void> {
     token: auth.token,
     reauth: auth.reauth,
   });
+}
+
+/**
+ * 상품 이미지 업로드(multipart, part 명 `file`) → `{ key, url }`.
+ * 반환 key 를 상품 write 의 thumbnailKey·imageKeys 로 사용. 회원 토큰으로 인증(apiFetch 자동 주입).
+ */
+export function uploadProductImage(file: File): Promise<ImageUpload> {
+  const form = new FormData();
+  form.append("file", file);
+  return apiFetch("/api/v1/products/images", imageUploadSchema, { method: "POST", body: form });
 }

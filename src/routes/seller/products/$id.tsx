@@ -80,11 +80,12 @@ function ProductManager({ id, sellerInfoId }: { id: string; sellerInfoId: string
         <h2 className="font-medium text-lg">상품 정보 수정</h2>
         <ProductForm
           defaultValues={toFormValues(product.data)}
+          defaultImageKeys={product.data.imageKeys ?? []}
           submitLabel="수정 저장"
           pending={update.isPending}
           errorMessage={update.isError ? update.error.message : undefined}
-          onSubmit={(values) =>
-            update.mutate({ sellerInfoId, id, body: toProductWriteBody(values) })
+          onSubmit={(values, imageKeys) =>
+            update.mutate({ sellerInfoId, id, body: toProductWriteBody(values, imageKeys) })
           }
         />
         {update.isSuccess ? (
