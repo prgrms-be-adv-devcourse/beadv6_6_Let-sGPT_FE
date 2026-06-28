@@ -42,22 +42,26 @@
 | POST | `/api/v1/products` | `ProductCreateRequest` | 201+Location | **판매자토큰** |
 | PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **판매자토큰** |
 | DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **판매자토큰** |
-| ⚠️ GET 본인 상품 목록 | (없음) | — | `PageResponse<ProductResponse>` | **`TODO(fe-api)`** SELLER |
+| GET | `/api/v1/products/me?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>`(본인 스토어) | **판매자(인증)** |
+| POST | `/api/v1/products/images` | 멀티파트 `file` | `{ key, url }` | **인증** |
+| GET | `/api/v1/products/images/{key}` | - | 이미지 바이트(스트리밍) | - |
 
-- `ProductResponse{ id, sellerId, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, createdAt }`
-- `ProductCreateRequest`(확인 필요): `name, description, categoryId?, price?, thumbnailKey?` 추정 — 구현 시 BE 재확인.
-- **판매자명 없음**: 응답에 storeName/sellerName 이 없어 카드·상세의 판매자 표기는 provisional(`TODO(fe-api)`).
-- **이미지 단일**: `thumbnailKey` 하나뿐 → **갤러리(`imageKeys`)·이미지 업로드 미지원**(`TODO(fe-api)`). FE 추가 이미지는 상태 보관.
-- **본인 상품 목록 조회 미구현** → 상품 관리(12)는 provisional(`/api/v1/products/me`) + Zod 로 구동, BE 마커 필요.
+- `ProductResponse{ id, sellerId(=sellerInfoId), sellerName:null, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, imageKeys:string[], createdAt }`
+- `ProductCreateRequest`/`ProductUpdateRequest`: `name, description?, categoryId?, price?, thumbnailKey?, imageKeys?`.
+- **판매자명 ✅**: `sellerName` 응답 포함(미연동 시 null) — 카드·상세 벤더 표기.
+- **이미지 ✅**: 대표 `thumbnailKey` + 갤러리 `imageKeys`. 업로드 `POST /products/images`(멀티파트 `file`→`{key,url}`), 조회 `GET /products/images/{key}`. FE 는 키를 `{base}/api/v1/products/images/{key}` 로 렌더(`resolveImageSrc`). 세미=로컬 저장 · 파이널=S3.
+- **본인 상품 목록 ✅**: `GET /products/me`(활성 스토어 기준).
 
 ## drop (드롭)
 | M·P | 경로 | 요청 | 응답 | 인증 |
 |---|---|---|---|---|
 | POST | `/api/v1/drops` | `{productId, dropPrice, totalQuantity, limitPerUser?, openAt, closeAt?}` | 201+Location | **판매자토큰** |
 | DELETE | `/api/v1/drops/{dropId}` | - | 204 | **판매자토큰** |
-| ⚠️ GET 조회 | (없음) | — | — | **`TODO(fe-api)`** |
+| GET | `/api/v1/drops?status&categoryId&keyword&sort&page&size` | - | `PageResponse<DropResponse>` | - |
+| GET | `/api/v1/drops/{dropId}` | - | `DropResponse` | - |
+| GET | `/api/v1/drops/me?status&categoryId&keyword&sort&page&size` | - | `PageResponse<DropResponse>`(본인 스토어) | **판매자(인증)** |
 
-- **구매자용 드롭 목록/상세 조회 API 미구현(2순위).** FE 는 provisional(`/api/v1/drops`) + Zod 로 구동, BE 마커 필요. 응답에 **판매자명(sellerName)·카테고리명** 포함 필요(현재 provisional). 판매자 본인 드롭 목록도 미제공.
+- `DropResponse{ id, productId, productName, sellerName:null, categoryId:null, categoryName:null, thumbnailKey:null, dropPrice, totalQuantity, remainingQuantity, status, openAt, closeAt:null }` — 검색/상세/본인 조회 3종 구현 ✅. `sellerName` 포함(미연동 시 null). 드롭엔 `imageKeys` 없음(단일 썸네일).
 - 드롭 상태 파생: DB 엔 `REGISTERED/CLOSE`만, `OPEN/SOLD_OUT` 은 시각+재고로 런타임 파생. 1인 한도 `limitPerUser`(null=무제한).
 
 ## category (카테고리, product 모듈)
