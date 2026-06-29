@@ -87,12 +87,15 @@ function DropDetailPage() {
               </button>
             </div>
           </div>
-          {createOrder.isError ? (
-            <p className="text-destructive text-sm">{createOrder.error.message}</p>
-          ) : null}
           <Button size="lg" className="w-full" disabled={createOrder.isPending} onClick={buy}>
             {createOrder.isPending ? "주문 처리 중…" : "주문하기"}
           </Button>
+          {/* 오류는 버튼 아래에 배치 — 버튼 위치를 고정해 표시/숨김 시 레이아웃 시프트(깜빡임) 방지. */}
+          {createOrder.isError ? (
+            <p className="text-destructive text-sm" role="alert" aria-live="polite">
+              {createOrder.error.message}
+            </p>
+          ) : null}
         </div>
       );
     }
