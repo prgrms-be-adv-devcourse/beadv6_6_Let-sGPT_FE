@@ -3,18 +3,19 @@ import { Link } from "@tanstack/react-router";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import { useMyDrops } from "../api/drops.queries";
+import { DropCreateDialog } from "./DropCreateDialog";
 import { DropStatusPill } from "./DropStatusPill";
 
-/** 판매자 본인 드롭 목록 — 드롭 관리(마이페이지 탭). BE `/api/v1/drops/me`(활성 스토어 기준). 새 드롭은 상품 관리 상세에서. */
+/** 판매자 본인 드롭 목록 — 드롭 관리(마이페이지 탭). BE `/api/v1/drops/me`. 등록은 여기서 "드롭 추가"로. */
 export function SellerDropList({ sellerInfoId }: { sellerInfoId: string }) {
   const drops = useMyDrops(sellerInfoId, { page: 0, size: 50 });
   const myDrops = drops.data?.content ?? [];
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        새 드롭은 <span className="text-foreground">상품 관리</span>에서 상품을 선택해 등록합니다.
-      </p>
+      <div className="flex justify-end">
+        <DropCreateDialog sellerInfoId={sellerInfoId} />
+      </div>
 
       {drops.isPending ? (
         <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>

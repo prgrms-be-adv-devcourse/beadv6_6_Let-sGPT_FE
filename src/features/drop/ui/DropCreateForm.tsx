@@ -10,10 +10,12 @@ import { type DropFormValues, dropFormSchema, toDropCreateBody } from "../model/
 type Props = {
   productId: string;
   sellerInfoId: string;
+  /** 등록 성공 후 콜백(예: 모달 닫기). 미지정 시 폼만 초기화. */
+  onCreated?: () => void;
 };
 
-/** 판매자 드롭 생성 폼 — 상품 관리 상세에서 해당 상품의 드롭을 등록. */
-export function DropCreateForm({ productId, sellerInfoId }: Props) {
+/** 판매자 드롭 생성 폼 — 드롭 관리에서 선택한 상품의 드롭을 등록. */
+export function DropCreateForm({ productId, sellerInfoId, onCreated }: Props) {
   const create = useCreateDrop();
   const form = useForm<DropFormValues>({
     resolver: zodResolver(dropFormSchema),
@@ -29,7 +31,12 @@ export function DropCreateForm({ productId, sellerInfoId }: Props) {
   function onSubmit(values: DropFormValues) {
     create.mutate(
       { sellerInfoId, body: toDropCreateBody(productId, values) },
-      { onSuccess: () => form.reset() },
+      {
+        onSuccess: () => {
+          form.reset();
+          onCreated?.();
+        },
+      },
     );
   }
 

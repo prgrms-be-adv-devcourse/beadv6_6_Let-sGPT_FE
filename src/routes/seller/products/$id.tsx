@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
-import { DropCreateForm } from "@/features/drop/ui/DropCreateForm";
 import {
   useDeleteProduct,
   useProduct,
@@ -86,12 +85,6 @@ function ProductManager({ id, sellerInfoId }: { id: string; sellerInfoId: string
         {update.isSuccess ? (
           <p className="text-muted-foreground text-sm">수정 사항이 저장되었습니다.</p>
         ) : null}
-      </section>
-
-      <section className="space-y-4 border-border border-t pt-8">
-        <h2 className="font-medium text-lg">드롭 생성</h2>
-        <p className="text-muted-foreground text-sm">이 상품의 한정 드롭을 등록합니다.</p>
-        <DropCreateForm productId={id} sellerInfoId={sellerInfoId} />
       </section>
 
       <section className="space-y-3 border-destructive/30 border-t pt-8">
