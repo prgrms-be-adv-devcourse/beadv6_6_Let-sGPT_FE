@@ -1,10 +1,11 @@
 import { useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
+import { createTossPayment } from "@/shared/lib/toss";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { useChargeWallet, useConfirmWalletCharge, useWalletBalance } from "../api/payments.queries";
+import { useChargeWallet, useWalletBalance } from "../api/payments.queries";
 
 const CHARGE_PRESETS = [10_000, 30_000, 50_000, 100_000];
 
@@ -17,13 +18,10 @@ const CHARGE_METHODS = [
 export function WalletSection() {
   const balance = useWalletBalance();
   const charge = useChargeWallet();
-  const confirmCharge = useConfirmWalletCharge();
   const [amount, setAmount] = useState(30_000);
   const [method, setMethod] = useState<"MOCK" | "PG">("MOCK");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  const pending = charge.isPending || confirmCharge.isPending;
 
   async function handleCharge() {
     setError(null);
@@ -31,11 +29,15 @@ export function WalletSection() {
     try {
       const created = await charge.mutateAsync({ amount, method });
       if (method === "PG" && created.status === "PENDING") {
-        await confirmCharge.mutateAsync({
-          chargeId: created.chargeId,
-          amount,
-          paymentKey: `mock-${created.chargeId}`,
+        await createTossPayment().requestPayment({
+          method: "CARD",
+          amount: { currency: "KRW", value: amount },
+          orderId: created.chargeId,
+          orderName: "지갑 충전",
+          successUrl: `${window.location.origin}/toss/charge/success`,
+          failUrl: `${window.location.origin}/mypage`,
         });
+        return; // Toss가 브라우저를 리다이렉트, 이후 코드 미실행
       }
       setSuccess(true);
     } catch (caught) {
@@ -84,8 +86,8 @@ export function WalletSection() {
             </button>
           ))}
         </div>
-        <Button disabled={pending} onClick={() => void handleCharge()}>
-          {pending ? "충전 중…" : `${formatKrw(amount)} 충전하기`}
+        <Button disabled={charge.isPending} onClick={() => void handleCharge()}>
+          {charge.isPending ? "충전 중…" : `${formatKrw(amount)} 충전하기`}
         </Button>
         {error ? <p className="text-destructive text-sm">{error}</p> : null}
         {success ? <p className="text-muted-foreground text-sm">충전이 완료되었습니다.</p> : null}

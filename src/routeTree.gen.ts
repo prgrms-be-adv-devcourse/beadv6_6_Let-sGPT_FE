@@ -25,6 +25,8 @@ import { Route as AdminSettlementsRouteImport } from "./routes/admin/settlements
 import { Route as AdminCategoriesRouteImport } from "./routes/admin/categories";
 import { Route as SellerProductsIndexRouteImport } from "./routes/seller/products/index";
 import { Route as OrdersOrderIdIndexRouteImport } from "./routes/orders/$orderId/index";
+import { Route as TossPaymentSuccessRouteImport } from "./routes/toss/payment/success";
+import { Route as TossChargeSuccessRouteImport } from "./routes/toss/charge/success";
 import { Route as SellerProductsNewRouteImport } from "./routes/seller/products/new";
 import { Route as SellerProductsIdRouteImport } from "./routes/seller/products/$id";
 import { Route as OrdersOrderIdCompleteRouteImport } from "./routes/orders/$orderId/complete";
@@ -109,6 +111,16 @@ const OrdersOrderIdIndexRoute = OrdersOrderIdIndexRouteImport.update({
   path: "/orders/$orderId/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const TossPaymentSuccessRoute = TossPaymentSuccessRouteImport.update({
+  id: "/toss/payment/success",
+  path: "/toss/payment/success",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const TossChargeSuccessRoute = TossChargeSuccessRouteImport.update({
+  id: "/toss/charge/success",
+  path: "/toss/charge/success",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const SellerProductsNewRoute = SellerProductsNewRouteImport.update({
   id: "/seller/products/new",
   path: "/seller/products/new",
@@ -143,6 +155,8 @@ export interface FileRoutesByFullPath {
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
+  "/toss/charge/success": typeof TossChargeSuccessRoute;
+  "/toss/payment/success": typeof TossPaymentSuccessRoute;
   "/orders/$orderId/": typeof OrdersOrderIdIndexRoute;
   "/seller/products/": typeof SellerProductsIndexRoute;
 }
@@ -164,6 +178,8 @@ export interface FileRoutesByTo {
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
+  "/toss/charge/success": typeof TossChargeSuccessRoute;
+  "/toss/payment/success": typeof TossPaymentSuccessRoute;
   "/orders/$orderId": typeof OrdersOrderIdIndexRoute;
   "/seller/products": typeof SellerProductsIndexRoute;
 }
@@ -186,6 +202,8 @@ export interface FileRoutesById {
   "/orders/$orderId/complete": typeof OrdersOrderIdCompleteRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
+  "/toss/charge/success": typeof TossChargeSuccessRoute;
+  "/toss/payment/success": typeof TossPaymentSuccessRoute;
   "/orders/$orderId/": typeof OrdersOrderIdIndexRoute;
   "/seller/products/": typeof SellerProductsIndexRoute;
 }
@@ -209,6 +227,8 @@ export interface FileRouteTypes {
     | "/orders/$orderId/complete"
     | "/seller/products/$id"
     | "/seller/products/new"
+    | "/toss/charge/success"
+    | "/toss/payment/success"
     | "/orders/$orderId/"
     | "/seller/products/";
   fileRoutesByTo: FileRoutesByTo;
@@ -230,6 +250,8 @@ export interface FileRouteTypes {
     | "/orders/$orderId/complete"
     | "/seller/products/$id"
     | "/seller/products/new"
+    | "/toss/charge/success"
+    | "/toss/payment/success"
     | "/orders/$orderId"
     | "/seller/products";
   id:
@@ -251,6 +273,8 @@ export interface FileRouteTypes {
     | "/orders/$orderId/complete"
     | "/seller/products/$id"
     | "/seller/products/new"
+    | "/toss/charge/success"
+    | "/toss/payment/success"
     | "/orders/$orderId/"
     | "/seller/products/";
   fileRoutesById: FileRoutesById;
@@ -273,6 +297,8 @@ export interface RootRouteChildren {
   OrdersOrderIdCompleteRoute: typeof OrdersOrderIdCompleteRoute;
   SellerProductsIdRoute: typeof SellerProductsIdRoute;
   SellerProductsNewRoute: typeof SellerProductsNewRoute;
+  TossChargeSuccessRoute: typeof TossChargeSuccessRoute;
+  TossPaymentSuccessRoute: typeof TossPaymentSuccessRoute;
   OrdersOrderIdIndexRoute: typeof OrdersOrderIdIndexRoute;
   SellerProductsIndexRoute: typeof SellerProductsIndexRoute;
 }
@@ -391,6 +417,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof OrdersOrderIdIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/toss/payment/success": {
+      id: "/toss/payment/success";
+      path: "/toss/payment/success";
+      fullPath: "/toss/payment/success";
+      preLoaderRoute: typeof TossPaymentSuccessRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/toss/charge/success": {
+      id: "/toss/charge/success";
+      path: "/toss/charge/success";
+      fullPath: "/toss/charge/success";
+      preLoaderRoute: typeof TossChargeSuccessRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/seller/products/new": {
       id: "/seller/products/new";
       path: "/seller/products/new";
@@ -433,6 +473,8 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersOrderIdCompleteRoute: OrdersOrderIdCompleteRoute,
   SellerProductsIdRoute: SellerProductsIdRoute,
   SellerProductsNewRoute: SellerProductsNewRoute,
+  TossChargeSuccessRoute: TossChargeSuccessRoute,
+  TossPaymentSuccessRoute: TossPaymentSuccessRoute,
   OrdersOrderIdIndexRoute: OrdersOrderIdIndexRoute,
   SellerProductsIndexRoute: SellerProductsIndexRoute,
 };

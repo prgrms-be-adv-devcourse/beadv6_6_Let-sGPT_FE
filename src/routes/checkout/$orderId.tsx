@@ -3,8 +3,9 @@ import { Clock } from "lucide-react";
 import { useState } from "react";
 
 import { useOrder } from "@/features/order/api/orders.queries";
-import { useConfirmPayment, useCreatePayment } from "@/features/payment/api/payments.queries";
+import { useCreatePayment } from "@/features/payment/api/payments.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
+import { createTossPayment } from "@/shared/lib/toss";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/checkout/$orderId")({
 
 const METHODS = [
   { value: "WALLET", label: "지갑(예치금)", desc: "충전된 잔액으로 즉시 결제" },
-  { value: "PG", label: "카드 결제", desc: "토스페이먼츠(모의 결제)" },
+  { value: "PG", label: "카드 결제", desc: "토스페이먼츠" },
 ] as const;
 
 function CheckoutPage() {
@@ -22,7 +23,6 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const order = useOrder(orderId);
   const createPayment = useCreatePayment();
-  const confirmPayment = useConfirmPayment();
   const [method, setMethod] = useState<"WALLET" | "PG">("WALLET");
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +36,6 @@ function CheckoutPage() {
   }
 
   const item = order.data;
-  const pending = createPayment.isPending || confirmPayment.isPending;
   const alreadyPaid = item.status !== "PAYMENT_PENDING";
 
   async function pay() {
@@ -48,13 +47,17 @@ function CheckoutPage() {
         method,
       });
       if (method === "PG" && created.status === "PAYMENT_PENDING") {
-        await confirmPayment.mutateAsync({
+        await createTossPayment().requestPayment({
+          method: "CARD",
+          amount: { currency: "KRW", value: item.totalPrice },
           orderId,
-          amount: item.totalPrice,
-          paymentKey: `mock-${created.paymentId}`,
+          orderName: item.productName,
+          successUrl: `${window.location.origin}/toss/payment/success`,
+          failUrl: `${window.location.origin}/checkout/${orderId}`,
         });
+        return; // Toss가 브라우저를 리다이렉트, 이후 코드 미실행
       }
-      navigate({ to: "/orders/$orderId/complete", params: { orderId } });
+      void navigate({ to: "/orders/$orderId/complete", params: { orderId } });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "결제에 실패했습니다.");
     }
@@ -129,8 +132,13 @@ function CheckoutPage() {
 
           {error ? <p className="text-destructive text-sm">{error}</p> : null}
 
-          <Button size="lg" className="w-full" disabled={pending} onClick={pay}>
-            {pending ? "결제 처리 중…" : `${formatKrw(item.totalPrice)} 결제하기`}
+          <Button
+            size="lg"
+            className="w-full"
+            disabled={createPayment.isPending}
+            onClick={() => void pay()}
+          >
+            {createPayment.isPending ? "결제 처리 중…" : `${formatKrw(item.totalPrice)} 결제하기`}
           </Button>
           <p className="text-center text-muted-foreground text-xs">
             예치금은 마이페이지에서 충전할 수 있습니다.

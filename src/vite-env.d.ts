@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
   readonly VITE_API_MOCKING: "enabled" | "disabled";
+  readonly VITE_TOSS_CLIENT_KEY: string;
 }
 
 interface ImportMeta {
