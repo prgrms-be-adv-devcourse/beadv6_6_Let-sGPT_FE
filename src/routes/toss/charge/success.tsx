@@ -22,22 +22,25 @@ function ChargeSuccessPage() {
   useEffect(() => {
     if (called.current) return;
     called.current = true;
-    confirm.mutate(
-      { chargeId, amount, paymentKey },
-      {
-        onSuccess(data) {
-          if (data.status === "APPROVED") {
-            void navigate({ to: "/mypage" });
-          }
-        },
-      },
-    );
-  }, [chargeId, amount, paymentKey, confirm, navigate]);
+    confirm.mutate({ chargeId, amount, paymentKey });
+  }, [chargeId, amount, paymentKey, confirm]);
 
   if (confirm.isError) {
     return (
       <p className="py-16 text-center text-destructive text-sm">
         충전 승인에 실패했습니다. {confirm.error.message}
+      </p>
+    );
+  }
+
+  if (confirm.isSuccess) {
+    if (confirm.data.status === "APPROVED") {
+      void navigate({ to: "/mypage" });
+      return null;
+    }
+    return (
+      <p className="py-16 text-center text-destructive text-sm">
+        충전이 승인되지 않았습니다. (상태: {confirm.data.status})
       </p>
     );
   }
