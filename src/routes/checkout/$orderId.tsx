@@ -13,17 +13,25 @@ export const Route = createFileRoute("/checkout/$orderId")({
   component: CheckoutPage,
 });
 
-const METHODS = [
+type PayMethod = "WALLET" | "PG_CARD" | "PG_TRANSFER";
+
+const METHODS: { value: PayMethod; label: string; desc: string }[] = [
   { value: "WALLET", label: "지갑(예치금)", desc: "충전된 잔액으로 즉시 결제" },
-  { value: "PG", label: "카드 결제", desc: "토스페이먼츠" },
-] as const;
+  { value: "PG_CARD", label: "카드 결제", desc: "토스페이먼츠 — 카드" },
+  { value: "PG_TRANSFER", label: "계좌이체", desc: "토스페이먼츠 — 계좌이체" },
+];
+
+const TOSS_METHOD: Record<"PG_CARD" | "PG_TRANSFER", "CARD" | "TRANSFER"> = {
+  PG_CARD: "CARD",
+  PG_TRANSFER: "TRANSFER",
+};
 
 function CheckoutPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
   const order = useOrder(orderId);
   const createPayment = useCreatePayment();
-  const [method, setMethod] = useState<"WALLET" | "PG">("WALLET");
+  const [method, setMethod] = useState<PayMethod>("WALLET");
   const [error, setError] = useState<string | null>(null);
 
   if (order.isPending) {
@@ -41,14 +49,15 @@ function CheckoutPage() {
   async function pay() {
     setError(null);
     try {
+      const apiMethod = method === "WALLET" ? "WALLET" : "PG";
       const created = await createPayment.mutateAsync({
         orderId,
         amount: item.totalPrice,
-        method,
+        method: apiMethod,
       });
-      if (method === "PG" && created.status === "PAYMENT_PENDING") {
+      if (method !== "WALLET" && created.status === "PAYMENT_PENDING") {
         await createTossPayment().requestPayment({
-          method: "CARD",
+          method: TOSS_METHOD[method],
           amount: { currency: "KRW", value: item.totalPrice },
           orderId,
           orderName: item.productName,

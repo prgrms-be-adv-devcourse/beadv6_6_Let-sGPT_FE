@@ -9,17 +9,25 @@ import { useChargeWallet, useWalletBalance } from "../api/payments.queries";
 
 const CHARGE_PRESETS = [10_000, 30_000, 50_000, 100_000];
 
-const CHARGE_METHODS = [
-  { value: "MOCK" as const, label: "모의 충전", desc: "즉시 잔액 반영(테스트용)" },
-  { value: "PG" as const, label: "카드 충전", desc: "토스페이먼츠(모의 결제)" },
+type ChargeMethod = "MOCK" | "PG_CARD" | "PG_TRANSFER";
+
+const CHARGE_METHODS: { value: ChargeMethod; label: string; desc: string }[] = [
+  { value: "MOCK", label: "모의 충전", desc: "즉시 잔액 반영(테스트용)" },
+  { value: "PG_CARD", label: "카드 충전", desc: "토스페이먼츠 — 카드" },
+  { value: "PG_TRANSFER", label: "계좌이체 충전", desc: "토스페이먼츠 — 계좌이체" },
 ];
 
-/** 지갑 — 잔액 조회(provisional GET /wallet) + 충전(MOCK 즉시/PG 카드). */
+const TOSS_METHOD: Record<"PG_CARD" | "PG_TRANSFER", "CARD" | "TRANSFER"> = {
+  PG_CARD: "CARD",
+  PG_TRANSFER: "TRANSFER",
+};
+
+/** 지갑 — 잔액 조회(provisional GET /wallet) + 충전(MOCK 즉시/PG 카드·계좌이체). */
 export function WalletSection() {
   const balance = useWalletBalance();
   const charge = useChargeWallet();
   const [amount, setAmount] = useState(30_000);
-  const [method, setMethod] = useState<"MOCK" | "PG">("MOCK");
+  const [method, setMethod] = useState<ChargeMethod>("MOCK");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -27,10 +35,11 @@ export function WalletSection() {
     setError(null);
     setSuccess(false);
     try {
-      const created = await charge.mutateAsync({ amount, method });
-      if (method === "PG" && created.status === "PENDING") {
+      const apiMethod = method === "MOCK" ? "MOCK" : "PG";
+      const created = await charge.mutateAsync({ amount, method: apiMethod });
+      if (method !== "MOCK" && created.status === "PENDING") {
         await createTossPayment().requestPayment({
-          method: "CARD",
+          method: TOSS_METHOD[method],
           amount: { currency: "KRW", value: amount },
           orderId: created.chargeId,
           orderName: "지갑 충전",
