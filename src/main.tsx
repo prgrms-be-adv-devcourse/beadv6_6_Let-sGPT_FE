@@ -7,6 +7,15 @@ import "@/app/styles/globals.css";
 // VITE_API_MOCKING=enabled 일 때만 MSW 워커를 띄워 BE 없이 전체 루프를 돌린다(§5).
 async function enableMocking() {
   if (import.meta.env.VITE_API_MOCKING !== "enabled") {
+    // 이전 세션에서 enabled로 실행했을 때 등록된 SW가 남아 API 요청을 가로채는 것을 방지.
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(
+        regs
+          .filter((r) => r.active?.scriptURL.includes("mockServiceWorker"))
+          .map((r) => r.unregister()),
+      );
+    }
     return;
   }
   const { worker } = await import("@/mocks/browser");

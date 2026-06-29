@@ -19,11 +19,21 @@ function PaymentSuccessPage() {
   const confirm = useConfirmPayment();
   const called = useRef(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: URL params + mutation은 마운트 시 1회만 실행
   useEffect(() => {
     if (called.current) return;
     called.current = true;
-    confirm.mutate({ orderId, amount, paymentKey });
-  }, [orderId, amount, paymentKey, confirm]);
+    confirm
+      .mutateAsync({ orderId, amount, paymentKey })
+      .then((data) => {
+        if (data.status === "APPROVED") {
+          void navigate({ to: "/orders/$orderId/complete", params: { orderId } });
+        }
+      })
+      .catch(() => {
+        // confirm.isError에서 렌더링됨
+      });
+  }, []);
 
   if (confirm.isError) {
     return (
@@ -34,15 +44,14 @@ function PaymentSuccessPage() {
   }
 
   if (confirm.isSuccess) {
-    if (confirm.data.status === "APPROVED") {
-      void navigate({ to: "/orders/$orderId/complete", params: { orderId } });
-      return null;
+    if (confirm.data.status !== "APPROVED") {
+      return (
+        <p className="py-16 text-center text-destructive text-sm">
+          결제가 승인되지 않았습니다. (상태: {confirm.data.status})
+        </p>
+      );
     }
-    return (
-      <p className="py-16 text-center text-destructive text-sm">
-        결제가 승인되지 않았습니다. (상태: {confirm.data.status})
-      </p>
-    );
+    return null;
   }
 
   return <p className="py-16 text-center text-muted-foreground text-sm">결제 확인 중…</p>;

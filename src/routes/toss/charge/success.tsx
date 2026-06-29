@@ -19,11 +19,21 @@ function ChargeSuccessPage() {
   const confirm = useConfirmWalletCharge();
   const called = useRef(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: URL params + mutation은 마운트 시 1회만 실행
   useEffect(() => {
     if (called.current) return;
     called.current = true;
-    confirm.mutate({ chargeId, amount, paymentKey });
-  }, [chargeId, amount, paymentKey, confirm]);
+    confirm
+      .mutateAsync({ chargeId, amount, paymentKey })
+      .then((data) => {
+        if (data.status === "APPROVED") {
+          void navigate({ to: "/mypage", search: { tab: "wallet", charged: amount } });
+        }
+      })
+      .catch(() => {
+        // confirm.isError에서 렌더링됨
+      });
+  }, []);
 
   if (confirm.isError) {
     return (
@@ -34,15 +44,14 @@ function ChargeSuccessPage() {
   }
 
   if (confirm.isSuccess) {
-    if (confirm.data.status === "APPROVED") {
-      void navigate({ to: "/mypage" });
-      return null;
+    if (confirm.data.status !== "APPROVED") {
+      return (
+        <p className="py-16 text-center text-destructive text-sm">
+          충전이 승인되지 않았습니다. (상태: {confirm.data.status})
+        </p>
+      );
     }
-    return (
-      <p className="py-16 text-center text-destructive text-sm">
-        충전이 승인되지 않았습니다. (상태: {confirm.data.status})
-      </p>
-    );
+    return null;
   }
 
   return <p className="py-16 text-center text-muted-foreground text-sm">충전 확인 중…</p>;
