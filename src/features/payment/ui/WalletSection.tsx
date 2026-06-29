@@ -7,7 +7,7 @@ import { useChargeWallet, useWalletBalance } from "../api/payments.queries";
 
 const CHARGE_PRESETS = [10_000, 30_000, 50_000, 100_000];
 
-/** 지갑 — 잔액 조회(provisional GET /wallet) + 모의 충전(POST /wallet/charge MOCK). */
+/** 지갑 — 잔액 조회(GET /api/v1/wallet) + 모의 충전(POST /wallet/charge MOCK). */
 export function WalletSection() {
   const balance = useWalletBalance();
   const charge = useChargeWallet();

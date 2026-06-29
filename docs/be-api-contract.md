@@ -6,7 +6,7 @@
 ## 인증·권한
 - 토큰: member 가 RS256 JWT 발급(`accessToken`/`refreshToken`). roles 클레임 = `USER`/`SELLER`/`ADMIN` 중 **현재 1개**.
 - 판매자 승격: `POST /api/v1/seller/me`(USER 가능) → 이후 **refresh/재로그인 해야 roles=SELLER 토큰** 획득.
-- 상품/드롭 write(판매자)는 **스토어 범위 판매자 토큰** 필요(회원 JWT 와 별도, `sellerInfoId` 단위). FE 주도 계약(BE 미구현, `TODO(fe-api)` 예정): `POST /api/v1/auth/seller-token {sellerInfoId} → {tokenType, accessToken, expiresIn}`(회원 JWT 인증, 짧은 수명). 활성 스토어 전환 시 재발급 — 상세 `auth.md`.
+- 상품/드롭 write(판매자)는 **스토어 범위 판매자 토큰** 필요(회원 JWT 와 별도, `sellerInfoId` 단위). **BE 구현됨**: `POST /api/v1/seller/token {sellerInfoId} → {tokenType, accessToken, expiresIn}`(회원 access 토큰 인증, 짧은 수명). 활성 스토어 전환 시 재발급 — 상세 `auth.md`. (⚠️ 게이트웨이에 `/api/v1/auth/**` 없음 — 옛 경로 `auth/seller-token` 은 404)
 - 쓰기(주문/결제/환불/충전)는 **`Idempotency-Key` 헤더**(주문은 body `idempotencyKey`) 필수.
 
 ## member (회원/인증)
@@ -100,7 +100,7 @@
 | GET | `/api/v1/refunds/histories?page&size` | - | `RefundHistoryResponse` | ✓ |
 | POST | `/api/v1/wallet/charge` | `{amount, method:MOCK\|PG}` +IdemKey | `WalletChargeResponse` 201 | ✓ |
 | POST | `/api/v1/wallet/charge/confirm` | `{chargeId, amount, paymentKey}` +IdemKey | `WalletChargeResponse` | ✓ |
-| ⚠️ 지갑 잔액 조회 | (없음) | — | — | **`TODO(fe-api)`** |
+| GET | `/api/v1/wallet` | - | `{ balance:number }`(지갑 없으면 0) | ✓ |
 
 - `PaymentResponse{ paymentId, status(string), paymentKey:null }` — WALLET→`APPROVED`, PG 생성→`PAYMENT_PENDING`, confirm→`APPROVED`/`FAILED`
 - `RefundResponse{ refundId, paymentId, amount, status: COMPLETE|FAILED|PENDING }`
@@ -125,5 +125,7 @@
 
 ## FE 통합 메모
 - 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key + Zod 경계 검증).
-- 미구현 BE(`// TODO(fe-api)` + MSW provisional): **드롭 조회**(목록·상세), **카테고리 조회**, **지갑 잔액**, **판매자 본인 상품/드롭 목록**, **판매자명**(product·drop 응답의 storeName/sellerName), **상품 갤러리/이미지 업로드**. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
+- BE 엔드포인트 현황(2026-06-29 BE 코드 대조 완료): 드롭 조회(목록·상세·`/me`)·카테고리 조회·판매자 본인 상품/드롭 목록(`products/me`·`drops/me`)·이미지 업로드·판매자 토큰(`/seller/token`)·지갑 잔액 **전부 BE 구현 확인**. 과거 "미구현" 표기는 모두 낡았던 것(원인은 대개 FE 경로 오타 또는 게이트웨이 라우트 오인).
+- 유일한 잔여 갭은 **판매자명(sellerName)** — 엔드포인트·DTO 필드는 있으나 BE 가 store명 이벤트 전파 전엔 `null` 가능(로컬은 시드로 채움). FE 는 `sellerName` 을 nullish 로 이미 처리하므로 추가 작업 없음. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
+- **상품 이미지 업로드/조회는 BE 구현 완료**(`POST /products/images` multipart→`{key,url}`, `GET /products/images/{key}`). 업로드는 `/products/**` 라 **판매자 스토어 범위 토큰** 필요(회원 토큰이면 게이트웨이 401/403) → `uploadProductImage`가 `SellerAuth` 부착.
 - PG 결제는 실제 토스 SDK 대신 FE 에선 **모의 결제(MSW)** 로 confirm 흐름만 재현.

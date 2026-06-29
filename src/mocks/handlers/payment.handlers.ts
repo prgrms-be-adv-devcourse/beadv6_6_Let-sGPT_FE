@@ -164,6 +164,6 @@ export const paymentHandlers = [
     return HttpResponse.json<WalletChargeResponse>({ chargeId: body.chargeId, status: "APPROVED" });
   }),
 
-  // TODO(fe-api): 지갑 잔액 조회는 BE 미구현 → provisional. 마이페이지 잔액 표기에 필요.
+  // 지갑 잔액 조회(BE 구현됨: GET /api/v1/wallet → { balance }). 목은 mockDb 잔액 반환.
   http.get("*/api/v1/wallet", () => HttpResponse.json({ balance: mockDb.wallet.balance })),
 ];

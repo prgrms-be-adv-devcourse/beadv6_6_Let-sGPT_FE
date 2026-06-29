@@ -9,7 +9,7 @@
 | 토큰 | 발급 | 범위 | 보관 | 수명 | 용도 |
 |---|---|---|---|---|---|
 | 회원 JWT (`accessToken`) | 로그인/리프레시(`POST /members/login`·`/refresh`) | 회원 전역 | localStorage(persist) | 보통(예 1h) | 모든 보호 호출의 기본 인증 — `apiFetch` 가 자동 주입 |
-| 판매자 JWT (`sellerToken`) | 재발급(`POST /auth/seller-token`) | **스토어(sellerInfoId) 단위** | **메모리 only**(persist 제외) | **짧게** | 상품/드롭 write — 활성 스토어 전환 시 재발급 |
+| 판매자 JWT (`sellerToken`) | 발급(`POST /api/v1/seller/token`) | **스토어(sellerInfoId) 단위** | **메모리 only**(persist 제외) | **짧게** | 상품/드롭 write — 활성 스토어 전환 시 재발급 |
 
 - 두 토큰은 **동시에** 보유한다(`authStore`). 회원 토큰은 새로고침 후에도 유지되고, **판매자 토큰은 새로고침/로그아웃 시 사라지며 다음 write 때 재발급**된다.
 - 단명·스토어 범위 판매자 토큰을 메모리에만 두는 이유: XSS 표적(스토리지 탈취) 회피 권고. 회원 토큰·refreshToken 은 현재 localStorage(httpOnly 쿠키 전환은 별도 과제).
@@ -47,13 +47,13 @@
 
 ## 계약 (BE)
 - 회원/판매자정보 엔드포인트: `be-api-contract.md` §member·§seller 참조.
-- 판매자 토큰 재발급 — **FE 주도 계약, BE 미구현(`TODO(fe-api)` 예정)**:
+- 판매자 토큰 발급 — **BE 구현됨**(`SellerController.issueSellerToken`):
   ```
-  POST /api/v1/auth/seller-token        (회원 JWT 인증)
+  POST /api/v1/seller/token             (회원 access 토큰 인증 · authenticatedAndNotScoped)
     body: { sellerInfoId }
     resp: { tokenType, accessToken, expiresIn }   ← 해당 스토어 범위 판매자 JWT
   ```
-  현재 MSW provisional(`mocks/handlers/member.handlers.ts`)이 스토어별 구분 토큰을 반환한다. `expiresIn` 을 BE 가 짧게 가져가도 FE 는 무탈하다(proactive 갱신 + 401 재시도가 흡수).
+  ⚠️ 게이트웨이에 `/api/v1/auth/**` 라우트는 없다 — 과거 FE 가 쓰던 `POST /api/v1/auth/seller-token` 은 404(RouteExistenceFilter). MSW(`mocks/handlers/member.handlers.ts`)도 동일 경로로 맞춰 둠. `expiresIn` 을 BE 가 짧게 가져가도 FE 는 무탈하다(proactive 갱신 + 401 재시도가 흡수).
 
 ## 파일 맵
 - 상태: `features/auth/store/authStore.ts`(회원·판매자 토큰), `features/seller/store/activeSellerStore.ts`(활성 스토어 SSOT)

@@ -63,7 +63,7 @@ export function getRefundHistories(
   });
 }
 
-/** 지갑 잔액 조회(GET /wallet, provisional). */
+/** 지갑 잔액 조회(GET /api/v1/wallet) — 회원 토큰 인증, 지갑 없으면 0. */
 export function getWalletBalance(): Promise<WalletBalance> {
   return apiFetch("/api/v1/wallet", walletBalanceSchema);
 }

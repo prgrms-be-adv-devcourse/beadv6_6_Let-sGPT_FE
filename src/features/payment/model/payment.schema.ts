@@ -45,6 +45,6 @@ export const walletChargeResponseSchema = z.object({
 });
 export type WalletChargeResponse = z.infer<typeof walletChargeResponseSchema>;
 
-/** 지갑 잔액 조회 — BE 미구현(provisional). */
+/** 지갑 잔액 조회 응답(`GET /api/v1/wallet` → `{ balance }`). BE 구현됨(WalletController). */
 export const walletBalanceSchema = z.object({ balance: z.number() });
 export type WalletBalance = z.infer<typeof walletBalanceSchema>;
