@@ -51,7 +51,12 @@ export function DropCreateForm({ productId, sellerInfoId, onCreated }: Props) {
               <FormItem>
                 <FormLabel>판매가 (원)</FormLabel>
                 <FormControl>
-                  <Input inputMode="numeric" placeholder="219000" {...field} />
+                  <Input
+                    inputMode="numeric"
+                    placeholder="219000"
+                    className="tabular-nums"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -64,7 +69,12 @@ export function DropCreateForm({ productId, sellerInfoId, onCreated }: Props) {
               <FormItem>
                 <FormLabel>총 수량</FormLabel>
                 <FormControl>
-                  <Input inputMode="numeric" placeholder="100" {...field} />
+                  <Input
+                    inputMode="numeric"
+                    placeholder="100"
+                    className="tabular-nums"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,7 +87,12 @@ export function DropCreateForm({ productId, sellerInfoId, onCreated }: Props) {
               <FormItem>
                 <FormLabel>1인 한도 (선택)</FormLabel>
                 <FormControl>
-                  <Input inputMode="numeric" placeholder="제한 없음" {...field} />
+                  <Input
+                    inputMode="numeric"
+                    placeholder="제한 없음"
+                    className="tabular-nums"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -117,7 +132,7 @@ export function DropCreateForm({ productId, sellerInfoId, onCreated }: Props) {
           <p className="text-muted-foreground text-sm">드롭이 등록되었습니다.</p>
         ) : null}
 
-        <Button type="submit" disabled={create.isPending}>
+        <Button type="submit" size="lg" className="w-full" disabled={create.isPending}>
           {create.isPending ? "등록 중…" : "드롭 등록"}
         </Button>
       </form>
