@@ -23,6 +23,7 @@ function NewProductPage() {
       <SellerGuard>
         {(sellerInfoId) => (
           <ProductForm
+            sellerInfoId={sellerInfoId}
             defaultValues={{
               name: "",
               description: "",

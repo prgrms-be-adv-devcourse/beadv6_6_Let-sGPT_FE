@@ -48,10 +48,17 @@ export function deleteProduct(id: string, auth: SellerAuth): Promise<void> {
 
 /**
  * 상품 이미지 업로드(multipart, part 명 `file`) → `{ key, url }`.
- * 반환 key 를 상품 write 의 thumbnailKey·imageKeys 로 사용. 회원 토큰으로 인증(apiFetch 자동 주입).
+ * 반환 key 를 상품 write 의 thumbnailKey·imageKeys 로 사용.
+ * 업로드도 `POST /products/**` 경로라 회원 토큰이 아닌 **판매자 스토어 범위 토큰**이 필요
+ * (게이트웨이가 scoped 토큰을 강제) → create/update 와 동일하게 SellerAuth 를 받는다.
  */
-export function uploadProductImage(file: File): Promise<ImageUpload> {
+export function uploadProductImage(file: File, auth: SellerAuth): Promise<ImageUpload> {
   const form = new FormData();
   form.append("file", file);
-  return apiFetch("/api/v1/products/images", imageUploadSchema, { method: "POST", body: form });
+  return apiFetch("/api/v1/products/images", imageUploadSchema, {
+    method: "POST",
+    body: form,
+    token: auth.token,
+    reauth: auth.reauth,
+  });
 }

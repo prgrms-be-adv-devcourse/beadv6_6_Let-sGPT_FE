@@ -49,9 +49,9 @@ export const memberHandlers = [
     return HttpResponse.json(demoMember);
   }),
 
-  // 판매자 토큰 재발급(스토어 범위) — BE 미구현 provisional.
-  // 실제 BE 는 회원 JWT 인증 + sellerInfoId 범위의 판매자 JWT 발급(회원 JWT 와 별도).
-  http.post("*/api/v1/auth/seller-token", async ({ request }) => {
+  // 판매자 토큰 발급(스토어 범위) — BE 구현됨(POST /api/v1/seller/token).
+  // 회원 JWT 인증 + sellerInfoId 범위의 판매자 JWT 발급(회원 JWT 와 별도).
+  http.post("*/api/v1/seller/token", async ({ request }) => {
     const body = (await request.json()) as { sellerInfoId?: string };
     return HttpResponse.json({
       tokenType: "Bearer",

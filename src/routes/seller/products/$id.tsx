@@ -73,6 +73,7 @@ function ProductManager({ id, sellerInfoId }: { id: string; sellerInfoId: string
       <section className="space-y-4">
         <h2 className="font-medium text-lg">상품 정보 수정</h2>
         <ProductForm
+          sellerInfoId={sellerInfoId}
           defaultValues={toFormValues(product.data)}
           defaultImageKeys={product.data.imageKeys ?? []}
           submitLabel="수정 저장"

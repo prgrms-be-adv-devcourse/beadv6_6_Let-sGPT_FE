@@ -26,7 +26,7 @@ export const tokenResponseSchema = z.object({
 export type TokenResponse = z.infer<typeof tokenResponseSchema>;
 
 /**
- * 판매자 토큰 재발급 응답 (`POST /api/v1/auth/seller-token`).
+ * 판매자 토큰 발급 응답 (`POST /api/v1/seller/token`).
  * 판매자 JWT 는 회원 JWT 와 별도이며 스토어(sellerInfoId) 단위로 발급된다.
  */
 export const sellerTokenResponseSchema = z.object({

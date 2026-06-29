@@ -1,11 +1,14 @@
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { resolveSellerAuth } from "@/features/auth/api/auth.api";
 import { uploadProductImage } from "@/features/product/api/products.api";
 import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 
 type Props = {
+  /** 업로드는 판매자 스토어 범위 토큰으로 인증 → 어느 스토어로 올릴지(sellerInfoId) 필요. */
+  sellerInfoId: string;
   images: string[];
   onImagesChange: (images: string[]) => void;
   thumbnail: string;
@@ -17,7 +20,13 @@ type Props = {
  * 업로드 → `{ key }` 수신 → key 를 images/thumbnail 로 보관(상품 write 시 thumbnailKey·imageKeys 로 전송).
  * key 는 ImagePlaceholder(resolveImageSrc)가 이미지 조회 URL로 변환해 렌더한다.
  */
-export function ProductImageField({ images, onImagesChange, thumbnail, onThumbnailChange }: Props) {
+export function ProductImageField({
+  sellerInfoId,
+  images,
+  onImagesChange,
+  thumbnail,
+  onThumbnailChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +38,10 @@ export function ProductImageField({ images, onImagesChange, thumbnail, onThumbna
     setUploading(true);
     setError(null);
     try {
+      // 한 번 확보한 판매자 토큰을 묶음 업로드에 공유(만료 시 각 요청의 reauth 가 재발급·재시도).
+      const auth = await resolveSellerAuth(sellerInfoId);
       const uploaded = await Promise.all(
-        Array.from(fileList).map((file) => uploadProductImage(file)),
+        Array.from(fileList).map((file) => uploadProductImage(file, auth)),
       );
       const next = [...images];
       for (const { key } of uploaded) {

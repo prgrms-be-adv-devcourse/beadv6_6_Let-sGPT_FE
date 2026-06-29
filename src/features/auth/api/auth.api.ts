@@ -80,8 +80,8 @@ export function updateMember(body: { nickname?: string; password?: string }): Pr
 //   - proactive : 만료 임박(스큐 이내)·스토어 변경·미보유면 미리 재발급
 //   - reactive  : write 가 401 이면 강제 재발급 후 1회 재시도(apiFetch reauth)
 //   - single-flight: 동시 재발급을 하나의 비행으로 합쳐 race·중복 호출 방지
-// TODO(fe-api): BE 미구현 — POST /api/v1/auth/seller-token { sellerInfoId }
-//   -> { tokenType, accessToken, expiresIn }. 현재 MSW provisional(스토어별 구분 토큰).
+// BE 구현됨(SellerController.issueSellerToken): POST /api/v1/seller/token { sellerInfoId }
+//   -> { tokenType, accessToken, expiresIn }. 회원 access 토큰으로 인증(authenticatedAndNotScoped).
 
 /** 만료 이 시간(ms) 이내면 미리 재발급(401 왕복 최소화). 만료 자체는 reauth 가 최종 복구. */
 const SELLER_TOKEN_REFRESH_SKEW_MS = 15_000;
@@ -90,7 +90,7 @@ const SELLER_TOKEN_REFRESH_SKEW_MS = 15_000;
 let inflightReissue: { sellerInfoId: string; promise: Promise<string> } | null = null;
 
 async function fetchAndStoreSellerToken(sellerInfoId: string): Promise<string> {
-  const res = await apiFetch("/api/v1/auth/seller-token", sellerTokenResponseSchema, {
+  const res = await apiFetch("/api/v1/seller/token", sellerTokenResponseSchema, {
     method: "POST",
     body: { sellerInfoId },
   });
