@@ -1,5 +1,6 @@
 import type {
   SellerSettlementSummary,
+  SettlementBatchResultSummary,
   SettlementOrderSummary,
 } from "@/features/settlement/model/settlement.schema";
 import { SELLER_ID } from "./products";
@@ -53,6 +54,62 @@ export const sellerSettlements: SellerSettlementSummary[] = [
     completedAt: null,
     failReason: "정산 계좌 검증 실패",
     failedAt: "2026-04-01T03:08:00",
+  },
+];
+
+/** 관리자 월 자동 정산 배치 결과(목). */
+export const settlementBatchResults: SettlementBatchResultSummary[] = [
+  {
+    batchId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    settlementMonth: "202606",
+    batchType: "SETTLEMENT_RUN",
+    status: "COMPLETED",
+    startedAt: "2026-06-01T03:00:00Z",
+    endedAt: "2026-06-01T03:12:00Z",
+    totalOrderCount: 42,
+    totalSellerCount: 8,
+    totalSettlementAmount: 8_559_000,
+    failReason: null,
+    createdAt: "2026-06-01T02:59:58Z",
+  },
+  {
+    batchId: "6f1c8c56-8fd8-4d28-8ea0-74c9eb8de79d",
+    settlementMonth: "202605",
+    batchType: "LOAD_REFUND",
+    status: "RUNNING",
+    startedAt: "2026-06-29T08:30:00Z",
+    endedAt: null,
+    totalOrderCount: 31,
+    totalSellerCount: 6,
+    totalSettlementAmount: 6_479_000,
+    failReason: null,
+    createdAt: "2026-06-29T08:29:58Z",
+  },
+  {
+    batchId: "779a3cf3-c259-44da-81d7-8fc6ce763942",
+    settlementMonth: "202604",
+    batchType: "LOAD_PAYMENT",
+    status: "FAILED",
+    startedAt: "2026-04-01T03:00:00Z",
+    endedAt: "2026-04-01T03:08:00Z",
+    totalOrderCount: 18,
+    totalSellerCount: 4,
+    totalSettlementAmount: 3_630_000,
+    failReason: "정산 계좌 검증 실패",
+    createdAt: "2026-04-01T02:59:58Z",
+  },
+  {
+    batchId: "81d4a57b-c42f-4cb2-af74-a74e95a2f931",
+    settlementMonth: "202603",
+    batchType: "SETTLEMENT_RETRY",
+    status: "READY",
+    startedAt: null,
+    endedAt: null,
+    totalOrderCount: 0,
+    totalSellerCount: 0,
+    totalSettlementAmount: 0,
+    failReason: null,
+    createdAt: "2026-03-02T09:00:00Z",
   },
 ];
 

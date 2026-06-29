@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { SellerGuard } from "@/features/seller/ui/SellerGuard";
 import { SettlementPanel } from "@/features/settlement/ui/SettlementPanel";
 
 export const Route = createFileRoute("/seller/settlements")({
@@ -22,7 +23,9 @@ function SellerSettlementsPage() {
         </Link>
       </header>
 
-      <SettlementPanel scope="seller" />
+      <SellerGuard>
+        {(sellerId) => <SettlementPanel scope="seller" sellerId={sellerId} />}
+      </SellerGuard>
     </div>
   );
 }

@@ -92,7 +92,7 @@ function MyPage() {
     }
     if (tab === "products") return <SellerProductList sellerInfoId={seller.sellerInfo.id} />;
     if (tab === "drops") return <SellerDropList sellerInfoId={seller.sellerInfo.id} />;
-    return <SettlementPanel scope="seller" />;
+    return <SettlementPanel scope="seller" sellerId={seller.sellerInfo.id} />;
   }
 
   return (

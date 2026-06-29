@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
 
-import { sellerSettlements, settlementOrders } from "../data/settlements";
+import { sellerSettlements, settlementBatchResults, settlementOrders } from "../data/settlements";
 
 function paginate<T>(list: T[], page: number, size: number) {
   const start = page * size;
@@ -18,15 +18,17 @@ function pageParams(request: Request) {
   return {
     settlementMonth: url.searchParams.get("settlementMonth"),
     status: url.searchParams.get("status"),
+    sellerId: url.searchParams.get("sellerId"),
+    orderId: url.searchParams.get("orderId"),
     page: Number(url.searchParams.get("page") ?? "0"),
     size: Number(url.searchParams.get("size") ?? "10"),
   };
 }
 
-// 판매자/관리자 정산 조회. 목 데이터는 동일(판매자=본인, 관리자=전체) — 게이트웨이가 X-User 로 범위 제한.
+// 판매자/관리자 정산 조회. sellerId가 있으면 해당 활성 판매자 범위로 제한한다.
 export const settlementHandlers = [
   http.get("*/api/v1/settlements/:scope/orders", ({ request }) => {
-    const { settlementMonth, status, page, size } = pageParams(request);
+    const { settlementMonth, status, sellerId, orderId, page, size } = pageParams(request);
     let filtered = settlementOrders;
     if (settlementMonth) {
       filtered = filtered.filter((order) => order.settlementMonth === settlementMonth);
@@ -34,12 +36,33 @@ export const settlementHandlers = [
     if (status) {
       filtered = filtered.filter((order) => order.status === status);
     }
+    if (sellerId) {
+      filtered = filtered.filter((order) => order.sellerId === sellerId);
+    }
+    if (orderId) {
+      filtered = filtered.filter((order) => order.orderId === orderId);
+    }
     return HttpResponse.json(paginate(filtered, page, size));
   }),
 
   http.get("*/api/v1/settlements/:scope/sellers", ({ request }) => {
-    const { settlementMonth, status, page, size } = pageParams(request);
+    const { settlementMonth, status, sellerId, page, size } = pageParams(request);
     let filtered = sellerSettlements;
+    if (settlementMonth) {
+      filtered = filtered.filter((item) => item.settlementMonth === settlementMonth);
+    }
+    if (status) {
+      filtered = filtered.filter((item) => item.status === status);
+    }
+    if (sellerId) {
+      filtered = filtered.filter((item) => item.sellerId === sellerId);
+    }
+    return HttpResponse.json(paginate(filtered, page, size));
+  }),
+
+  http.get("*/api/v1/settlements/admin/batch-results", ({ request }) => {
+    const { settlementMonth, status, page, size } = pageParams(request);
+    let filtered = settlementBatchResults;
     if (settlementMonth) {
       filtered = filtered.filter((item) => item.settlementMonth === settlementMonth);
     }
@@ -62,6 +85,12 @@ export const settlementHandlers = [
         retried += 1;
       }
     }
-    return HttpResponse.json({ retriedCount: retried });
+    return HttpResponse.json({
+      batchId: "9ee94a8f-80d3-48c2-9078-292e80e44741",
+      settlementMonth: month,
+      retriedSellerCount: retried,
+      status: "RUNNING",
+      failReason: null,
+    });
   }),
 ];
