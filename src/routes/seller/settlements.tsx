@@ -1,14 +1,8 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { useAuthStore } from "@/features/auth/store/authStore";
 import { SettlementPanel } from "@/features/settlement/ui/SettlementPanel";
 
 export const Route = createFileRoute("/seller/settlements")({
-  beforeLoad: () => {
-    if (!useAuthStore.getState().member) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: SellerSettlementsPage,
 });
 

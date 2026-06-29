@@ -8,7 +8,7 @@ import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
-export const Route = createFileRoute("/checkout/$orderId")({
+export const Route = createFileRoute("/_authed/checkout/$orderId")({
   component: CheckoutPage,
 });
 

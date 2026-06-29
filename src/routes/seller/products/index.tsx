@@ -1,15 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { useAuthStore } from "@/features/auth/store/authStore";
 import { SellerProductList } from "@/features/product/ui/SellerProductList";
 import { SellerGuard } from "@/features/seller/ui/SellerGuard";
 
 export const Route = createFileRoute("/seller/products/")({
-  beforeLoad: () => {
-    if (!useAuthStore.getState().member) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: SellerProductsPage,
 });
 

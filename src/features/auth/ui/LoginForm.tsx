@@ -8,7 +8,8 @@ import { Input } from "@/shared/ui/input";
 import { useLogin } from "../api/auth.queries";
 import { type LoginFormValues, loginFormSchema } from "../model/auth.schema";
 
-export function LoginForm() {
+/** @param redirectTo 로그인 성공 후 이동할 경로(보호 라우트에서 넘어온 복귀 목적지). 없으면 홈으로. */
+export function LoginForm({ redirectTo }: { redirectTo?: string | undefined }) {
   const navigate = useNavigate();
   const login = useLogin();
   const form = useForm<LoginFormValues>({
@@ -18,7 +19,7 @@ export function LoginForm() {
 
   function onSubmit(values: LoginFormValues) {
     login.mutate(values, {
-      onSuccess: () => navigate({ to: "/" }),
+      onSuccess: () => navigate({ to: redirectTo ?? "/" }),
     });
   }
 

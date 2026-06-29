@@ -8,7 +8,7 @@ import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Pagination } from "@/shared/ui/Pagination";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 
-export const Route = createFileRoute("/orders/")({
+export const Route = createFileRoute("/_authed/orders/")({
   component: OrderListPage,
 });
 

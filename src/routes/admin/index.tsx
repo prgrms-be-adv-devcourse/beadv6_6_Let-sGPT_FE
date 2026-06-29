@@ -1,14 +1,8 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { AdminShell } from "@/app/layout/AdminShell";
-import { useAuthStore } from "@/features/auth/store/authStore";
 
 export const Route = createFileRoute("/admin/")({
-  beforeLoad: () => {
-    if (!useAuthStore.getState().member) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: AdminDashboardPage,
 });
 

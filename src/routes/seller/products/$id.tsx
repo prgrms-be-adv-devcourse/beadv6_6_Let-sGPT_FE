@@ -1,6 +1,5 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
-import { useAuthStore } from "@/features/auth/store/authStore";
 import { DropCreateForm } from "@/features/drop/ui/DropCreateForm";
 import {
   useDeleteProduct,
@@ -17,11 +16,6 @@ import { SellerGuard } from "@/features/seller/ui/SellerGuard";
 import { Button } from "@/shared/ui/button";
 
 export const Route = createFileRoute("/seller/products/$id")({
-  beforeLoad: () => {
-    if (!useAuthStore.getState().member) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: SellerProductDetailPage,
 });
 

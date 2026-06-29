@@ -5,7 +5,7 @@ import { useOrder } from "@/features/order/api/orders.queries";
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 
-export const Route = createFileRoute("/orders/$orderId/complete")({
+export const Route = createFileRoute("/_authed/orders/$orderId/complete")({
   component: OrderCompletePage,
 });
 

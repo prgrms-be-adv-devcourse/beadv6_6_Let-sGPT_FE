@@ -5,7 +5,7 @@ import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 
-export const Route = createFileRoute("/orders/$orderId/")({
+export const Route = createFileRoute("/_authed/orders/$orderId/")({
   component: OrderDetailPage,
 });
 

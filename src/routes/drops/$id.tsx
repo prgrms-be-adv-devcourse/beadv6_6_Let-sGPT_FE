@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { useDrop } from "@/features/drop/api/drops.queries";
 import { Countdown } from "@/features/drop/ui/Countdown";
 import { DropStatusPill } from "@/features/drop/ui/DropStatusPill";
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/drops/$id")({
 function DropDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useAuthStore((state) => Boolean(state.member));
   const drop = useDrop(id);
   const createOrder = useCreateOrder();
   const [quantity, setQuantity] = useState(1);
@@ -38,6 +41,12 @@ function DropDetailPage() {
   const maxQty = Math.max(1, Math.min(item.remainingQuantity, 5));
 
   function buy() {
+    // 비로그인 상태에서는 주문 API(인증 필요)를 호출하지 않고 로그인 화면으로 보낸다.
+    // 로그인 후 이 드롭 페이지로 복귀하도록 현재 경로를 redirect 로 동봉.
+    if (!isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: location.href } });
+      return;
+    }
     createOrder.mutate(
       { dropId: item.id, quantity },
       {

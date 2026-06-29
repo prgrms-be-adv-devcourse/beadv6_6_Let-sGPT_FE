@@ -1,15 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminShell } from "@/app/layout/AdminShell";
-import { useAuthStore } from "@/features/auth/store/authStore";
 import { CategoryManager } from "@/features/category/ui/CategoryManager";
 
 export const Route = createFileRoute("/admin/categories")({
-  beforeLoad: () => {
-    if (!useAuthStore.getState().member) {
-      throw redirect({ to: "/login" });
-    }
-  },
   component: AdminCategoriesPage,
 });
 
