@@ -22,5 +22,9 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     css: true,
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // 테스트는 apiFetch/image 의 `new URL(path, VITE_API_BASE_URL)` 에 유효한 base 가 필요하다.
+    // 실제 호출은 MSW 가 가로채므로 값 자체는 임의의 유효 URL 이면 된다. .env 는 gitignore 라
+    // CI 엔 없어 base 가 undefined → "Invalid URL" 로 깨졌다. 커밋되는 이 설정에 고정한다.
+    env: { VITE_API_BASE_URL: "http://localhost:8000" },
   },
 });
