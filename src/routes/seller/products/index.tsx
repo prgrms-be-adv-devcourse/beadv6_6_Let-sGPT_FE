@@ -15,7 +15,9 @@ function SellerProductsPage() {
         <h1 className="font-serif text-4xl tracking-tight">상품 관리</h1>
       </header>
 
-      <SellerGuard>{() => <SellerProductList />}</SellerGuard>
+      <SellerGuard>
+        {(sellerInfoId) => <SellerProductList sellerInfoId={sellerInfoId} />}
+      </SellerGuard>
     </div>
   );
 }

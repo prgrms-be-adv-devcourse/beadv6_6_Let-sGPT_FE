@@ -42,7 +42,7 @@
 | POST | `/api/v1/products` | `ProductCreateRequest` | 201+Location | **판매자토큰** |
 | PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **판매자토큰** |
 | DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **판매자토큰** |
-| GET | `/api/v1/products/me?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>`(본인 스토어) | **판매자(인증)** |
+| GET | `/api/v1/products/me?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>`(본인 스토어) | **판매자토큰**(⚠️ GET이지만 BE가 X-Seller-Id로 스토어 식별 → 회원 토큰이면 401) |
 | POST | `/api/v1/products/images` | 멀티파트 `file` | `{ key, url }` | **인증** |
 | GET | `/api/v1/products/images/{key}` | - | 이미지 바이트(스트리밍) | - |
 
@@ -59,7 +59,7 @@
 | DELETE | `/api/v1/drops/{dropId}` | - | 204 | **판매자토큰** |
 | GET | `/api/v1/drops?status&categoryId&keyword&sort&page&size` | - | `PageResponse<DropResponse>` | - |
 | GET | `/api/v1/drops/{dropId}` | - | `DropResponse` | - |
-| GET | `/api/v1/drops/me?status&categoryId&keyword&sort&page&size` | - | `PageResponse<DropResponse>`(본인 스토어) | **판매자(인증)** |
+| GET | `/api/v1/drops/me?status&categoryId&keyword&sort&page&size` | - | `PageResponse<DropResponse>`(본인 스토어) | **판매자토큰**(⚠️ products/me 와 동일 — X-Seller-Id 필요, 회원 토큰이면 401) |
 
 - `DropResponse{ id, productId, productName, sellerName:null, categoryId:null, categoryName:null, thumbnailKey:null, dropPrice, totalQuantity, remainingQuantity, status, openAt, closeAt:null }` — 검색/상세/본인 조회 3종 구현 ✅. `sellerName` 포함(미연동 시 null). 드롭엔 `imageKeys` 없음(단일 썸네일).
 - 드롭 상태 파생: DB 엔 `REGISTERED/CLOSE`만, `OPEN/SOLD_OUT` 은 시각+재고로 런타임 파생. 1인 한도 `limitPerUser`(null=무제한).

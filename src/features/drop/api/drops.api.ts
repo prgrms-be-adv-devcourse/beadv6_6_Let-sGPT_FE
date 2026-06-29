@@ -39,8 +39,11 @@ export function fetchDrops(params: FetchDropsParams = {}): Promise<DropCardPage>
   });
 }
 
-/** 판매자 본인 드롭 목록(GET /api/v1/drops/me) — 활성 스토어 기준(인증 회원). BE 구현됨(searchMyDrops). [screens/12·13] */
-export function getMyDrops(params: FetchDropsParams = {}): Promise<DropCardPage> {
+/**
+ * 판매자 본인 드롭 목록(GET /api/v1/drops/me) — BE 구현됨(searchMyDrops). [screens/12·13]
+ * BE 가 X-Seller-Id(scoped 토큰) 로 스토어를 식별 → 회원 토큰이면 401 → 스토어 범위 토큰 부착.
+ */
+export function getMyDrops(params: FetchDropsParams = {}, auth: SellerAuth): Promise<DropCardPage> {
   return apiFetch("/api/v1/drops/me", dropCardPageSchema, {
     query: {
       status: params.status,
@@ -50,6 +53,8 @@ export function getMyDrops(params: FetchDropsParams = {}): Promise<DropCardPage>
       page: params.page,
       size: params.size,
     },
+    token: auth.token,
+    reauth: auth.reauth,
   });
 }
 

@@ -6,8 +6,8 @@ import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 import { useMyProducts } from "../api/products.queries";
 
 /** 판매자 본인 상품 목록 — 상품 관리(마이페이지 탭 / 판매자 콘솔 공용). */
-export function SellerProductList() {
-  const products = useMyProducts({ page: 0, size: 50 });
+export function SellerProductList({ sellerInfoId }: { sellerInfoId: string }) {
+  const products = useMyProducts(sellerInfoId, { page: 0, size: 50 });
 
   return (
     <div className="space-y-4">

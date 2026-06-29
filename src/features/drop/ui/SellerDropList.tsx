@@ -6,8 +6,8 @@ import { useMyDrops } from "../api/drops.queries";
 import { DropStatusPill } from "./DropStatusPill";
 
 /** 판매자 본인 드롭 목록 — 드롭 관리(마이페이지 탭). BE `/api/v1/drops/me`(활성 스토어 기준). 새 드롭은 상품 관리 상세에서. */
-export function SellerDropList() {
-  const drops = useMyDrops({ page: 0, size: 50 });
+export function SellerDropList({ sellerInfoId }: { sellerInfoId: string }) {
+  const drops = useMyDrops(sellerInfoId, { page: 0, size: 50 });
   const myDrops = drops.data?.content ?? [];
 
   return (

@@ -55,15 +55,15 @@ export function useProduct(id: string) {
 
 // ── 판매자 콘솔 ───────────────────────────────────────────────────────────
 export const myProductQueries = {
-  list: (params: { page?: number; size?: number } = {}) =>
+  list: (sellerInfoId: string, params: { page?: number; size?: number } = {}) =>
     queryOptions({
-      queryKey: ["products", "me", params] as const,
-      queryFn: () => getMyProducts(params),
+      queryKey: ["products", "me", sellerInfoId, params] as const,
+      queryFn: async () => getMyProducts(params, await resolveSellerAuth(sellerInfoId)),
     }),
 };
 
-export function useMyProducts(params: { page?: number; size?: number } = {}) {
-  return useQuery(myProductQueries.list(params));
+export function useMyProducts(sellerInfoId: string, params: { page?: number; size?: number } = {}) {
+  return useQuery(myProductQueries.list(sellerInfoId, params));
 }
 
 export function useCreateProduct() {

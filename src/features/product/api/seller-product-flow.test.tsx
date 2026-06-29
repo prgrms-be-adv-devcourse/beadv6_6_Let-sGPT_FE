@@ -25,7 +25,7 @@ describe("판매자 상품 등록 플로우 (판매자 토큰 재발급 + MSW)",
 
   it("상품을 등록하면 내 상품 목록(GET /products/me)에 노출된다", async () => {
     const { result } = renderHook(
-      () => ({ create: useCreateProduct(), mine: useMyProducts({ page: 0, size: 50 }) }),
+      () => ({ create: useCreateProduct(), mine: useMyProducts("s-1", { page: 0, size: 50 }) }),
       { wrapper },
     );
 

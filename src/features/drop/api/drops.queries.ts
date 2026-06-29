@@ -47,12 +47,12 @@ export function useDrop(id: string) {
   return useQuery(dropQueries.detail(id));
 }
 
-/** 판매자 본인 드롭 목록(/drops/me) — 드롭 관리 콘솔(활성 스토어 기준). */
-export function useMyDrops(params: FetchDropsParams = {}) {
+/** 판매자 본인 드롭 목록(/drops/me) — 드롭 관리 콘솔(스토어 범위 토큰 필요). */
+export function useMyDrops(sellerInfoId: string, params: FetchDropsParams = {}) {
   return useQuery(
     queryOptions({
-      queryKey: ["drops", "me", params] as const,
-      queryFn: () => getMyDrops(params),
+      queryKey: ["drops", "me", sellerInfoId, params] as const,
+      queryFn: async () => getMyDrops(params, await resolveSellerAuth(sellerInfoId)),
     }),
   );
 }

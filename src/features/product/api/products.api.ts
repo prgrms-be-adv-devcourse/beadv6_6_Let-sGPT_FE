@@ -10,10 +10,17 @@ import {
   productPageSchema,
 } from "../model/product.schema";
 
-// 판매자 본인 상품 목록(GET /api/v1/products/me) — BE 구현됨(searchMyProducts, 활성 스토어 기준). [screens/12]
-export function getMyProducts(params: { page?: number; size?: number } = {}): Promise<ProductPage> {
+// 판매자 본인 상품 목록(GET /api/v1/products/me) — BE 구현됨(searchMyProducts).
+// BE 가 X-Seller-Id(scoped 토큰) 로 스토어를 식별 → 회원 토큰이면 401(UNAUTHENTICATED).
+// 따라서 write 와 동일하게 스토어 범위 판매자 토큰을 싣는다.
+export function getMyProducts(
+  params: { page?: number; size?: number } = {},
+  auth: SellerAuth,
+): Promise<ProductPage> {
   return apiFetch("/api/v1/products/me", productPageSchema, {
     query: { page: params.page, size: params.size },
+    token: auth.token,
+    reauth: auth.reauth,
   });
 }
 
