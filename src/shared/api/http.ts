@@ -9,6 +9,16 @@ export function setAccessTokenProvider(provider: () => string | null) {
   accessTokenProvider = provider;
 }
 
+/**
+ * 회원 access 토큰이 만료(401)되면 refresh 토큰으로 재발급하는 핸들러.
+ * 성공 시 새 accessToken, 갱신 불가/실패 시 null 을 반환한다(세션 정리는 핸들러 책임).
+ * auth 피처가 앱 시작 시 등록한다(app/providers.tsx) — shared ↔ auth 경계 분리.
+ */
+let tokenRefreshHandler: (() => Promise<string | null>) | null = null;
+export function setTokenRefreshHandler(handler: () => Promise<string | null>) {
+  tokenRefreshHandler = handler;
+}
+
 /** BE 공통 에러 포맷 `{ error, message }` 를 담는 에러. */
 export class ApiError extends Error {
   readonly status: number;
@@ -101,6 +111,21 @@ export async function apiFetch<T>(
       ...init,
       headers: { ...headers, Authorization: `Bearer ${freshToken}` },
     });
+  } else if (
+    // 회원 access 토큰 만료: refresh 토큰으로 재발급 후 1회만 재시도(reactive).
+    // 명시 토큰(override)·공개 호출·판매자 reauth 경로는 제외 — 회원 토큰 자동 주입 경로만 대상.
+    response.status === 401 &&
+    options.token === undefined &&
+    options.auth !== false &&
+    tokenRefreshHandler
+  ) {
+    const freshToken = await tokenRefreshHandler();
+    if (freshToken) {
+      response = await fetch(url, {
+        ...init,
+        headers: { ...headers, Authorization: `Bearer ${freshToken}` },
+      });
+    }
   }
 
   if (!response.ok) {

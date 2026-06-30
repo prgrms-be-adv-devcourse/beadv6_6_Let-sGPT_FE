@@ -12,6 +12,8 @@ type AuthState = {
   sellerTokenStoreId: string | null;
   sellerTokenExpiresAt: number | null;
   setSession: (token: TokenResponse, member: Member) => void;
+  /** 토큰만 갱신(리프레시 재발급) — 회원정보는 유지. */
+  setTokens: (token: TokenResponse) => void;
   setMember: (member: Member) => void;
   setSellerToken: (token: string, sellerInfoId: string, expiresAt: number) => void;
   clearSellerToken: () => void;
@@ -34,6 +36,8 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: token.refreshToken,
           member,
         }),
+      setTokens: (token) =>
+        set({ accessToken: token.accessToken, refreshToken: token.refreshToken }),
       setMember: (member) => set({ member }),
       setSellerToken: (token, sellerInfoId, expiresAt) =>
         set({

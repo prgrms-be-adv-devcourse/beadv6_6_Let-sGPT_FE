@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { apiFetch } from "@/shared/api/http";
 import {
   type Member,
@@ -53,6 +55,50 @@ export async function loginRequest(body: {
   return tokenResponseSchema.parse(await response.json());
 }
 
+export async function refreshRequest(refreshToken: string): Promise<TokenResponse> {
+  const response = await fetch(new URL("/api/v1/members/refresh", baseUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, "세션 갱신에 실패했습니다."));
+  }
+  return tokenResponseSchema.parse(await response.json());
+}
+
+/**
+ * 회원 access 토큰 만료 시 refresh 토큰으로 세션을 갱신한다(apiFetch 의 401 안전망).
+ * 동시 401 은 single-flight 로 합쳐 회전형 refresh 토큰의 중복 무효화를 막는다.
+ * 갱신 성공 → 새 accessToken, refresh 토큰 부재·갱신 실패 → 세션 정리 후 null.
+ */
+let inflightRefresh: Promise<string | null> | null = null;
+
+export function refreshSession(): Promise<string | null> {
+  if (inflightRefresh) {
+    return inflightRefresh;
+  }
+  const promise = (async (): Promise<string | null> => {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    if (!refreshToken) {
+      return null;
+    }
+    try {
+      const token = await refreshRequest(refreshToken);
+      useAuthStore.getState().setTokens(token);
+      return token.accessToken;
+    } catch {
+      // 갱신 불가(만료·폐기) → 세션 종료. member=null → 보호 라우트는 로그인으로 밀려난다.
+      useAuthStore.getState().clear();
+      return null;
+    }
+  })().finally(() => {
+    inflightRefresh = null;
+  });
+  inflightRefresh = promise;
+  return promise;
+}
+
 export async function meRequest(accessToken: string): Promise<Member> {
   const response = await fetch(new URL("/api/v1/members/me", baseUrl), {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -71,6 +117,11 @@ export function getMe(): Promise<Member> {
 /** 회원 정보 수정(PATCH /me) — nickname·password 부분 갱신. */
 export function updateMember(body: { nickname?: string; password?: string }): Promise<Member> {
   return apiFetch("/api/v1/members/me", memberSchema, { method: "PATCH", body });
+}
+
+/** 로그아웃(POST /logout) — 서버의 refresh 토큰을 무효화한다(204). 토큰은 apiFetch 가 주입. */
+export function logoutRequest(): Promise<void> {
+  return apiFetch("/api/v1/members/logout", z.void(), { method: "POST" });
 }
 
 // ── 판매자 토큰(스토어 범위) — 토큰 매니저 ────────────────────────────────

@@ -2,14 +2,17 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 
+import { refreshSession } from "@/features/auth/api/auth.api";
 import { authContext } from "@/features/auth/lib/authContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { routeTree } from "@/routeTree.gen";
-import { setAccessTokenProvider } from "@/shared/api/http";
+import { setAccessTokenProvider, setTokenRefreshHandler } from "@/shared/api/http";
 import { queryClient } from "./queryClient";
 
 // 인증 HTTP 헬퍼에 토큰 게터 주입(shared ↔ auth 피처 분리).
 setAccessTokenProvider(() => useAuthStore.getState().accessToken);
+// 401 시 refresh 토큰으로 회원 access 토큰 자동 재발급(shared ↔ auth 경계 분리).
+setTokenRefreshHandler(refreshSession);
 
 const router = createRouter({
   routeTree,
