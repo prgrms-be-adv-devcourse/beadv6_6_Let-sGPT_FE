@@ -20,6 +20,10 @@ export function getOrCreatePendingChargeKey(): string {
   return key;
 }
 
+export function clearPendingChargeKey(): void {
+  sessionStorage.removeItem("idem:charge:pending");
+}
+
 /** POST /wallet/charge 응답으로 chargeId 확정 후 pending → chargeId 슬롯으로 이전. */
 export function persistChargeKey(chargeId: string): void {
   const key = sessionStorage.getItem("idem:charge:pending") ?? `charge-${crypto.randomUUID()}`;
