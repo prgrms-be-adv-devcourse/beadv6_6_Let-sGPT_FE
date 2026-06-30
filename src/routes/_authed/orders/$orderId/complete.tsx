@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Clock } from "lucide-react";
+import { useEffect } from "react";
 
 import { useOrder } from "@/features/order/api/orders.queries";
+import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
+import { LoadingState } from "@/shared/ui/LoadingState";
 
 export const Route = createFileRoute("/_authed/orders/$orderId/complete")({
   component: OrderCompletePage,
@@ -12,9 +15,16 @@ export const Route = createFileRoute("/_authed/orders/$orderId/complete")({
 function OrderCompletePage() {
   const { orderId } = Route.useParams();
   const order = useOrder(orderId);
+  const status = order.data?.status;
+
+  useEffect(() => {
+    if (!status || status === "COMPLETED") return;
+    const id = window.setInterval(() => void order.refetch(), 1500);
+    return () => window.clearInterval(id);
+  }, [order.refetch, status]);
 
   if (order.isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="주문 상태를 확인하는 중" />;
   }
   if (order.isError || !order.data) {
     return (
@@ -23,14 +33,24 @@ function OrderCompletePage() {
   }
 
   const item = order.data;
+  const completed = item.status === "COMPLETED";
 
   return (
     <div className="mx-auto max-w-md py-8 text-center sm:py-16">
       <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-foreground text-background">
-        <CheckIcon className="size-7" />
+        {completed ? <CheckIcon className="size-7" /> : <Clock className="size-7" />}
       </div>
-      <h1 className="mt-6 font-serif text-3xl tracking-tight">주문이 완료되었습니다</h1>
-      <p className="mt-2 text-muted-foreground text-sm">한정판 드롭 참여가 확정되었어요.</p>
+      <h1 className="mt-6 font-serif text-3xl tracking-tight">
+        {completed ? "주문이 완료되었습니다" : "결제 상태를 확인하고 있습니다"}
+      </h1>
+      <p className="mt-2 text-muted-foreground text-sm">
+        {completed
+          ? "한정판 드롭 참여가 확정되었어요."
+          : "결제 승인 후 주문 반영까지 잠시 걸릴 수 있습니다."}
+      </p>
+      <div className="mt-4 flex justify-center">
+        <OrderStatusBadge status={item.status} />
+      </div>
 
       <dl className="mt-8 space-y-3 rounded-lg border p-5 text-left text-sm">
         <div className="flex justify-between gap-4">
@@ -55,9 +75,17 @@ function OrderCompletePage() {
         <Button asChild variant="outline" className="flex-1">
           <Link to="/drops">드롭 더 보기</Link>
         </Button>
-        <Button asChild className="flex-1">
-          <Link to="/">홈으로</Link>
-        </Button>
+        {item.status === "PAYMENT_PENDING" ? (
+          <Button asChild className="flex-1">
+            <Link to="/checkout/$orderId" params={{ orderId }}>
+              결제 계속하기
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild className="flex-1">
+            <Link to="/">홈으로</Link>
+          </Button>
+        )}
       </div>
 
       <Link
