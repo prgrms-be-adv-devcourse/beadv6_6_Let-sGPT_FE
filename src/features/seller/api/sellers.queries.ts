@@ -13,8 +13,13 @@ export const sellerQueries = {
     }),
 };
 
+/**
+ * 내 판매자정보 목록. GET /api/v1/seller/me 는 SELLER 전용(USER 면 403)이므로
+ * 회원 역할이 SELLER 일 때만 호출한다(비-SELLER 는 호출 자체를 생략).
+ */
 export function useMySellerInfos(params: { isActive?: boolean } = {}) {
-  return useQuery(sellerQueries.mine(params));
+  const isSeller = useAuthStore((state) => state.member?.role === "ROLE_SELLER");
+  return useQuery({ ...sellerQueries.mine(params), enabled: isSeller });
 }
 
 /**
@@ -30,7 +35,9 @@ export function useActiveSellerInfo() {
     sellers.find((seller) => seller.active) ??
     sellers[0] ??
     null;
-  return { sellerInfo: active, isPending: query.isPending, isError: query.isError };
+  // 비-SELLER 는 쿼리가 비활성(enabled:false)이라 isPending 이 계속 true 다 →
+  // 실제 패칭 중일 때만 로딩으로 본다(isLoading = isPending && isFetching).
+  return { sellerInfo: active, isPending: query.isLoading, isError: query.isError };
 }
 
 /**
