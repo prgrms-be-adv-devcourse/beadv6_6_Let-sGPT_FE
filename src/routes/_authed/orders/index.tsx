@@ -26,6 +26,9 @@ function OrderListPage() {
   const [status, setStatus] = useState<OrderStatus | "ALL">("ALL");
   const [page, setPage] = useState(0);
   const orders = useMyOrders({ ...(status !== "ALL" ? { status } : {}), page, size: PAGE_SIZE });
+  const sortedOrders = [...(orders.data?.content ?? [])].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -53,13 +56,13 @@ function OrderListPage() {
       {orders.isError ? (
         <p className="py-16 text-center text-destructive text-sm">주문을 불러오지 못했습니다.</p>
       ) : null}
-      {orders.data && orders.data.content.length === 0 ? (
+      {orders.data && sortedOrders.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground text-sm">주문 내역이 없습니다.</p>
       ) : null}
-      {orders.data && orders.data.content.length > 0 ? (
+      {orders.data && sortedOrders.length > 0 ? (
         <>
           <ul className="divide-y divide-border border-border border-y">
-            {orders.data.content.map((order) => (
+            {sortedOrders.map((order) => (
               <li key={order.orderId}>
                 <Link
                   to="/orders/$orderId"
