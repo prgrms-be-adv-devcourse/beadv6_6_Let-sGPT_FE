@@ -77,12 +77,12 @@
 ## order (주문)
 | M·P | 경로 | 요청 | 응답 | 인증 |
 |---|---|---|---|---|
-| POST | `/api/v1/orders` | `{dropId, quantity(≥1), idempotencyKey}` | `CreateOrderResponse` 201 | ✓ |
+| POST | `/api/v1/orders` | `{dropId, quantity(≥1), idempotencyKey, orderName}` | `CreateOrderResponse` 201 | ✓ |
 | GET | `/api/v1/orders/{orderId}` | - | `OrderResponse` | ✓ |
 | GET | `/api/v1/orders?status&page&size` | - | `PageResponse<OrderSummaryResponse>` | ✓ |
 | POST | `/api/v1/orders/{orderId}/cancel` | - | `OrderCancelResponse` | ✓ |
 
-- `CreateOrderResponse{ orderId, orderNumber, status, amount:number, orderName, paymentExpiresAt }` (status 항상 `PAYMENT_PENDING`)
+- `CreateOrderResponse{ orderId, orderNumber, status, amount:number, orderName, paymentExpiresAt, created:boolean }` (status 항상 `PAYMENT_PENDING`)
 - `OrderResponse{ orderId, orderNumber, dropId, productId, productName, quantity, totalPrice, status, paymentId:null, paymentExpiresAt, failCode:null, createdAt }`
 - `OrderSummaryResponse` = OrderResponse 에서 paymentId/paymentExpiresAt/failCode 제외
 - `OrderStatus`: `PAYMENT_PENDING|COMPLETED|FAILED|CANCELLED|CANCEL_REQUESTED|REFUND_PENDING|REFUNDED|REFUND_FAILED`

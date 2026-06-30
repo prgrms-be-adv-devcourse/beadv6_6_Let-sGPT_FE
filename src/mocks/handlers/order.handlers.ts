@@ -31,6 +31,7 @@ function toCreateResponse(order: Order, status: number) {
     amount: order.totalPrice,
     orderName: order.productName,
     paymentExpiresAt: order.paymentExpiresAt,
+    created: status === 201,
   };
   return HttpResponse.json(body, { status });
 }
@@ -41,7 +42,7 @@ export const orderHandlers = [
       dropId: string;
       quantity: number;
       idempotencyKey: string;
-      orderName?: string;
+      orderName: string;
     };
 
     const existingId = mockDb.orderIdByIdempotencyKey.get(body.idempotencyKey);
@@ -80,8 +81,8 @@ export const orderHandlers = [
       orderNumber,
       dropId: drop.id,
       productId: drop.productId,
-      // BE 와 동일: 클라가 보낸 표시명을 저장, 없으면 주문번호로 폴백.
-      productName: body.orderName?.trim() ? body.orderName : orderNumber,
+      // BE 세미 구현과 동일하게 클라가 보낸 표시명을 저장한다.
+      productName: body.orderName,
       quantity: body.quantity,
       totalPrice: drop.dropPrice * body.quantity,
       status: "PAYMENT_PENDING",

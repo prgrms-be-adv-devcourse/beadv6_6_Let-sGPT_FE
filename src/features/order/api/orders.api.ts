@@ -15,7 +15,7 @@ import {
 /**
  * 드롭 주문 생성(멱등키 동봉) → PAYMENT_PENDING.
  * orderName(표시명)은 FE 가 조회한 상품명을 그대로 전달 — BE 가 이를 주문 표시명으로 저장한다
- * (미전달 시 BE 는 주문번호로 폴백). 주문 시점에 클라가 가진 productName 을 넘긴다.
+ * BE 세미 구현에서 필수값이다. 주문 시점에 클라가 가진 productName 을 넘긴다.
  */
 export function createOrder(input: {
   dropId: string;

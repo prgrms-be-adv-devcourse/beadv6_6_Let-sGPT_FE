@@ -34,6 +34,7 @@ export const createOrderResponseSchema = z.object({
   amount: z.number(),
   orderName: z.string(),
   paymentExpiresAt: z.string(),
+  created: z.boolean(),
 });
 export type CreateOrderResponse = z.infer<typeof createOrderResponseSchema>;
 
