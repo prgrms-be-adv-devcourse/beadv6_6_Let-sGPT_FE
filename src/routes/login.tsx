@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { LoginForm } from "@/features/auth/ui/LoginForm";
 
@@ -6,6 +6,14 @@ export const Route = createFileRoute("/login")({
   // 로그인 후 복귀할 원래 경로(보호 라우트 가드가 동봉).
   validateSearch: (search): { redirect?: string } =>
     typeof search.redirect === "string" ? { redirect: search.redirect } : {},
+  // 이미 로그인한 사용자가 로그인 화면에 오면(또는 로그인 직후 member 반영 → 라우터 재평가)
+  // 복귀 목적지(없으면 홈)로 보낸다. /login 루프 방지로 자기 경로면 홈으로.
+  beforeLoad: ({ context, search }) => {
+    if (context.auth.isAuthenticated) {
+      const target = search.redirect && search.redirect !== "/login" ? search.redirect : "/";
+      throw redirect({ to: target });
+    }
+  },
   component: LoginPage,
 });
 

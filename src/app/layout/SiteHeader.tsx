@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
+import { logoutRequest } from "@/features/auth/api/auth.api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { SellerSwitcher } from "@/features/seller/ui/SellerSwitcher";
 import { cn } from "@/shared/lib/utils";
@@ -12,6 +13,16 @@ const navLinkClass =
 function AuthActions() {
   const member = useAuthStore((state) => state.member);
   const clear = useAuthStore((state) => state.clear);
+  const navigate = useNavigate();
+
+  // 보호 라우트(예: 마이페이지)에서 먼저 로그아웃하면 가드가 로그인 화면으로 밀어내므로,
+  // 공개 홈으로 먼저 이동한 뒤 세션을 비운다 → 항상 메인페이지로 안착.
+  async function handleLogout() {
+    // 서버의 refresh 토큰 무효화(실패해도 로컬 정리는 진행). 토큰이 살아있는 동안 먼저 호출.
+    void logoutRequest().catch(() => undefined);
+    await navigate({ to: "/" });
+    clear();
+  }
 
   if (member) {
     return (
@@ -40,7 +51,9 @@ function AuthActions() {
           title="로그아웃"
           description="정말 로그아웃하시겠어요?"
           confirmLabel="로그아웃"
-          onConfirm={() => clear()}
+          onConfirm={() => {
+            void handleLogout();
+          }}
         />
       </>
     );
