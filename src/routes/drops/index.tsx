@@ -46,7 +46,7 @@ function sortDrops(list: DropCard[], sort: SortValue): DropCard[] {
 function DropListPage() {
   const drops = useDropList({ size: 50 });
   const categories = useCategories();
-  const [status, setStatus] = useState<DropStatus | "ALL">("ALL");
+  const [status, setStatus] = useState<DropStatus | "ALL">("OPEN");
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<SortValue>("recommended");
 
