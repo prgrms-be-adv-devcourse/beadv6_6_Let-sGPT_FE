@@ -28,7 +28,14 @@ function PaymentSuccessPage() {
       .then((data) => {
         if (data.status === "APPROVED") {
           void navigate({ to: "/orders/$orderId/complete", params: { orderId } });
+          return;
         }
+        void navigate({
+          to: "/checkout/$orderId",
+          params: { orderId },
+          search: { payment: "failed" },
+          replace: true,
+        });
       })
       .catch(() => {
         // confirm.isError에서 렌더링됨

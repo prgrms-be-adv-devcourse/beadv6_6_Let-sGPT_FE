@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
 
 import { useOrder } from "@/features/order/api/orders.queries";
 import { useCreatePayment, useWalletBalance } from "@/features/payment/api/payments.queries";
@@ -10,6 +11,9 @@ import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 export const Route = createFileRoute("/_authed/checkout/$orderId")({
+  validateSearch: z.object({
+    payment: z.enum(["failed"]).optional(),
+  }),
   component: CheckoutPage,
 });
 
@@ -28,6 +32,7 @@ const TOSS_METHOD: Record<"PG_CARD" | "PG_TRANSFER", "CARD" | "TRANSFER"> = {
 
 function CheckoutPage() {
   const { orderId } = Route.useParams();
+  const { payment } = Route.useSearch();
   const navigate = useNavigate();
   const order = useOrder(orderId);
   const createPayment = useCreatePayment();
@@ -66,7 +71,7 @@ function CheckoutPage() {
           orderId,
           orderName: item.productName,
           successUrl: `${window.location.origin}/toss/payment/success`,
-          failUrl: `${window.location.origin}/checkout/${orderId}`,
+          failUrl: `${window.location.origin}/checkout/${orderId}?payment=failed`,
         });
         return; // Toss가 브라우저를 리다이렉트, 이후 코드 미실행
       }
@@ -169,6 +174,11 @@ function CheckoutPage() {
             </div>
           ) : null}
 
+          {payment === "failed" ? (
+            <p className="text-destructive text-sm">
+              결제가 승인되지 않았습니다. 주문은 아직 결제 대기 상태이므로 다시 결제할 수 있습니다.
+            </p>
+          ) : null}
           {error ? <p className="text-destructive text-sm">{error}</p> : null}
 
           <Button
