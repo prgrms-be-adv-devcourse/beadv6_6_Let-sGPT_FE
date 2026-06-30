@@ -1,5 +1,9 @@
 import { apiFetch } from "@/shared/api/http";
-import { newIdempotencyKey } from "@/shared/lib/id";
+import {
+  getChargeKey,
+  getOrCreatePaymentKey,
+  getOrCreatePendingChargeKey,
+} from "@/shared/lib/idempotency";
 import {
   type PaymentResponse,
   paymentResponseSchema,
@@ -22,7 +26,7 @@ export function createPayment(input: {
   return apiFetch("/api/v1/payments", paymentResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: newIdempotencyKey("pay"),
+    idempotencyKey: getOrCreatePaymentKey(input.orderId),
   });
 }
 
@@ -35,7 +39,7 @@ export function confirmPayment(input: {
   return apiFetch("/api/v1/payments/confirm", paymentResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: newIdempotencyKey("pay-confirm"),
+    idempotencyKey: getOrCreatePaymentKey(input.orderId),
   });
 }
 
@@ -51,7 +55,7 @@ export function requestRefund(input: {
   return apiFetch("/api/v1/refunds", refundResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: newIdempotencyKey("refund"),
+    idempotencyKey: `refund-${crypto.randomUUID()}`,
   });
 }
 
@@ -75,7 +79,7 @@ export function chargeWallet(input: {
   return apiFetch("/api/v1/wallet/charge", walletChargeResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: newIdempotencyKey("charge"),
+    idempotencyKey: getOrCreatePendingChargeKey(),
   });
 }
 
@@ -87,6 +91,6 @@ export function confirmWalletCharge(input: {
   return apiFetch("/api/v1/wallet/charge/confirm", walletChargeResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: newIdempotencyKey("charge-confirm"),
+    idempotencyKey: getChargeKey(input.chargeId),
   });
 }

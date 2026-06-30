@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useCancelOrder, useOrder } from "@/features/order/api/orders.queries";
 import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
+import { useRequestRefund } from "@/features/payment/api/payments.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 
@@ -13,6 +14,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const order = useOrder(orderId);
   const cancel = useCancelOrder();
+  const refund = useRequestRefund();
 
   if (order.isPending) {
     return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
@@ -24,6 +26,19 @@ function OrderDetailPage() {
   }
 
   const item = order.data;
+
+  async function handleRefundRequest() {
+    try {
+      await cancel.mutateAsync(orderId);
+      await refund.mutateAsync({
+        paymentId: item.paymentId!,
+        amount: item.totalPrice,
+        reason: "고객 환불 요청",
+      });
+    } catch {
+      // cancel.isError / refund.isError에서 렌더링됨
+    }
+  }
 
   function actions() {
     if (item.status === "PAYMENT_PENDING") {
@@ -46,14 +61,15 @@ function OrderDetailPage() {
       );
     }
     if (item.status === "COMPLETED") {
+      const isPending = cancel.isPending || refund.isPending;
       return (
         <Button
           variant="outline"
           className="w-full"
-          disabled={cancel.isPending}
-          onClick={() => cancel.mutate(orderId)}
+          disabled={isPending}
+          onClick={() => void handleRefundRequest()}
         >
-          {cancel.isPending ? "처리 중…" : "환불 요청"}
+          {isPending ? "처리 중…" : "환불 요청"}
         </Button>
       );
     }
@@ -114,6 +130,7 @@ function OrderDetailPage() {
 
       {actions()}
       {cancel.isError ? <p className="text-destructive text-sm">{cancel.error.message}</p> : null}
+      {refund.isError ? <p className="text-destructive text-sm">{refund.error.message}</p> : null}
 
       <Link
         to="/orders"

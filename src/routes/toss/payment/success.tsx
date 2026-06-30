@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { useConfirmPayment } from "@/features/payment/api/payments.queries";
+import { clearPaymentKey } from "@/shared/lib/idempotency";
 
 export const Route = createFileRoute("/toss/payment/success")({
   validateSearch: z.object({
@@ -26,12 +27,13 @@ function PaymentSuccessPage() {
     confirm
       .mutateAsync({ orderId, amount, paymentKey })
       .then((data) => {
+        clearPaymentKey(orderId);
         if (data.status === "APPROVED") {
           void navigate({ to: "/orders/$orderId/complete", params: { orderId } });
         }
       })
       .catch(() => {
-        // confirm.isError에서 렌더링됨
+        clearPaymentKey(orderId);
       });
   }, []);
 
@@ -51,7 +53,7 @@ function PaymentSuccessPage() {
         </p>
       );
     }
-    return null;
+    return <p className="py-16 text-center text-muted-foreground text-sm">이동 중…</p>;
   }
 
   return <p className="py-16 text-center text-muted-foreground text-sm">결제 확인 중…</p>;

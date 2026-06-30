@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
+import { persistChargeKey } from "@/shared/lib/idempotency";
 import { createTossPayment } from "@/shared/lib/toss";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -44,6 +45,7 @@ export function WalletSection() {
       const apiMethod = method === "MOCK" ? "MOCK" : "PG";
       const created = await charge.mutateAsync({ amount, method: apiMethod });
       if (method !== "MOCK" && created.status === "PENDING") {
+        persistChargeKey(created.chargeId);
         await createTossPayment().requestPayment({
           method: TOSS_METHOD[method],
           amount: { currency: "KRW", value: amount },
