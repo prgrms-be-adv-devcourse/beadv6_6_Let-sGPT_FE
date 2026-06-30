@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
-import { persistChargeKey } from "@/shared/lib/idempotency";
+import { clearPendingChargeKey, persistChargeKey } from "@/shared/lib/idempotency";
 import { createTossPayment } from "@/shared/lib/toss";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -56,8 +56,12 @@ export function WalletSection() {
         });
         return; // Toss가 브라우저를 리다이렉트, 이후 코드 미실행
       }
+      // MOCK 충전 완료 — pending 키 소멸(다음 충전은 새 키 발급)
+      clearPendingChargeKey();
       setChargedAmount(amount);
     } catch (caught) {
+      // 실패 시에도 pending 키 소멸 — 재시도는 새 키로
+      clearPendingChargeKey();
       setError(caught instanceof Error ? caught.message : "충전에 실패했습니다.");
     }
   }
