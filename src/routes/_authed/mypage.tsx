@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { ProfileSection } from "@/features/auth/ui/ProfileSection";
@@ -11,10 +12,22 @@ import { SellerProductList } from "@/features/product/ui/SellerProductList";
 import { useActiveSellerInfo } from "@/features/seller/api/sellers.queries";
 import { SellerSection } from "@/features/seller/ui/SellerSection";
 import { SettlementPanel } from "@/features/settlement/ui/SettlementPanel";
+import { formatKrw } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 
 export const Route = createFileRoute("/_authed/mypage")({
+  validateSearch: z.object({
+    tab: z.string().optional(),
+    charged: z.coerce.number().optional(),
+  }),
   component: MyPage,
 });
 
@@ -58,7 +71,10 @@ const ALL_ITEMS = GROUPS.flatMap((group) => group.items);
 
 function MyPage() {
   const member = useAuthStore((state) => state.member);
-  const [tab, setTab] = useState<TabKey>("profile");
+  const { tab: tabParam, charged } = Route.useSearch();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<TabKey>((tabParam as TabKey | undefined) ?? "profile");
+  const [chargeDialogOpen, setChargeDialogOpen] = useState(Boolean(charged));
   const seller = useActiveSellerInfo();
   const current = ALL_ITEMS.find((item) => item.key === tab);
 
@@ -95,8 +111,34 @@ function MyPage() {
     return <SettlementPanel scope="seller" sellerId={seller.sellerInfo.id} />;
   }
 
+  function handleChargeDialogClose() {
+    setChargeDialogOpen(false);
+    void navigate({ to: "/mypage", search: {}, replace: true });
+  }
+
   return (
     <div className="space-y-10">
+      <Dialog
+        open={chargeDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) handleChargeDialogClose();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>충전 완료</DialogTitle>
+            <DialogDescription>
+              {charged ? formatKrw(charged) : ""}이 지갑에 충전되었습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button size="sm" onClick={handleChargeDialogClose}>
+              확인
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <header className="space-y-2">
         <p className="text-muted-foreground text-xs uppercase tracking-[0.25em]">Account</p>
         <h1 className="font-serif text-4xl tracking-tight">마이페이지</h1>
