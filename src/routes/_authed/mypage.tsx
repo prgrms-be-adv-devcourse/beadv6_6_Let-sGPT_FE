@@ -69,6 +69,9 @@ const GROUPS: { title: string; items: Item[] }[] = [
 
 const ALL_ITEMS = GROUPS.flatMap((group) => group.items);
 
+/** SELLER 권한이 있어야 보이는 판매 콘솔 메뉴(판매자정보 등록 진입점은 제외). */
+const SELLER_ONLY_KEYS = new Set<TabKey>(["products", "drops", "settlements"]);
+
 function MyPage() {
   const member = useAuthStore((state) => state.member);
   const { tab: tabParam, charged } = Route.useSearch();
@@ -77,6 +80,14 @@ function MyPage() {
   const [chargeDialogOpen, setChargeDialogOpen] = useState(Boolean(charged));
   const seller = useActiveSellerInfo();
   const current = ALL_ITEMS.find((item) => item.key === tab);
+
+  // 판매 콘솔(상품·드롭·정산)은 SELLER 권한일 때만 노출한다. '판매자 정보'(등록·관리)는
+  // USER 의 판매자 전환 진입점이므로 항상 노출 → 비어 보이는 그룹은 통째로 숨긴다.
+  const isSeller = member?.role === "ROLE_SELLER";
+  const visibleGroups = GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => isSeller || !SELLER_ONLY_KEYS.has(item.key)),
+  })).filter((group) => group.items.length > 0);
 
   function renderContent() {
     if (tab === "profile") return <ProfileSection />;
@@ -151,7 +162,7 @@ function MyPage() {
 
       <div className="grid gap-10 lg:grid-cols-[200px_1fr]">
         <nav className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          {GROUPS.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.title} className="space-y-0.5">
               <p className="px-3 pb-1 text-[0.65rem] text-muted-foreground uppercase tracking-[0.15em]">
                 {group.title}
