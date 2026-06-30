@@ -1,6 +1,6 @@
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
-import { Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Minus, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useDrop } from "@/features/drop/api/drops.queries";
@@ -12,6 +12,7 @@ import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { buildGallery } from "@/shared/lib/image";
 import { Button } from "@/shared/ui/button";
 import { ImageGallery } from "@/shared/ui/ImageGallery";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { Tag } from "@/shared/ui/Tag";
 
 export const Route = createFileRoute("/drops/$id")({
@@ -26,9 +27,34 @@ function DropDetailPage() {
   const drop = useDrop(id);
   const createOrder = useCreateOrder();
   const [quantity, setQuantity] = useState(1);
+  const [openingNow, setOpeningNow] = useState(false);
+
+  useEffect(() => {
+    const item = drop.data;
+    if (item?.status !== "REGISTERED") {
+      setOpeningNow(false);
+      return;
+    }
+
+    const delay = new Date(item.openAt).getTime() - Date.now();
+    if (delay <= 0) {
+      setOpeningNow(true);
+      void drop.refetch();
+      return;
+    }
+
+    const id = window.setTimeout(
+      () => {
+        setOpeningNow(true);
+        void drop.refetch();
+      },
+      Math.min(delay + 500, 2_147_483_647),
+    );
+    return () => window.clearTimeout(id);
+  }, [drop.data, drop.refetch]);
 
   if (drop.isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="드롭을 불러오는 중" />;
   }
   if (drop.isError || !drop.data) {
     return (
@@ -102,7 +128,14 @@ function DropDetailPage() {
     if (item.status === "REGISTERED") {
       return (
         <Button size="lg" className="w-full" disabled>
-          오픈 예정
+          {openingNow || drop.isFetching ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              오픈 상태 확인 중
+            </span>
+          ) : (
+            "오픈 예정"
+          )}
         </Button>
       );
     }
