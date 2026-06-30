@@ -448,7 +448,7 @@ function OrderView({
           { label: "순정산액 합계", value: sum((item) => item.netSettlementAmount) },
         ]}
       />
-      <TableShell>
+      <TableShell tableClassName="min-w-[980px]">
         <thead className="border-border border-b bg-surface/60 text-muted-foreground">
           <tr>
             <th className={thClass}>정산월</th>
@@ -464,28 +464,38 @@ function OrderView({
         <tbody className="divide-y divide-border">
           {content.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-surface/40">
-              <td className={`${tdClass} tabular-nums`}>{formatMonth(item.settlementMonth)}</td>
+              <td className={`${tdClass} whitespace-nowrap tabular-nums`}>
+                {formatMonth(item.settlementMonth)}
+              </td>
               {showSellerId ? (
-                <td
-                  className={`${tdClass} whitespace-nowrap font-mono text-muted-foreground text-xs`}
-                >
-                  {item.sellerId}
+                <td className={tdClass}>
+                  <p className="max-w-44 break-all font-mono text-muted-foreground text-xs leading-relaxed">
+                    {item.sellerId}
+                  </p>
                 </td>
               ) : null}
-              <td className={`${tdClass} font-mono text-muted-foreground text-xs`}>
-                {item.orderId}
+              <td className={tdClass}>
+                <p className="max-w-44 break-all font-mono text-muted-foreground text-xs leading-relaxed">
+                  {item.orderId}
+                </p>
               </td>
-              <td className={`${tdClass} text-right tabular-nums`}>{formatKrw(item.paidAmount)}</td>
-              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+              <td className={`${tdClass} whitespace-nowrap text-right tabular-nums`}>
+                {formatKrw(item.paidAmount)}
+              </td>
+              <td
+                className={`${tdClass} whitespace-nowrap text-right text-muted-foreground tabular-nums`}
+              >
                 {formatKrw(item.feeAmount)}
               </td>
-              <td className={`${tdClass} text-right text-muted-foreground tabular-nums`}>
+              <td
+                className={`${tdClass} whitespace-nowrap text-right text-muted-foreground tabular-nums`}
+              >
                 {formatKrw(item.refundAmount)}
               </td>
-              <td className={`${tdClass} text-right font-medium tabular-nums`}>
+              <td className={`${tdClass} whitespace-nowrap text-right font-medium tabular-nums`}>
                 {formatKrw(item.netSettlementAmount)}
               </td>
-              <td className={tdClass}>
+              <td className={`${tdClass} whitespace-nowrap`}>
                 <StatusBadge status={item.status} />
               </td>
             </tr>
