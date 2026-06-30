@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { useState } from "react";
 
 import { useOrder } from "@/features/order/api/orders.queries";
-import { useCreatePayment } from "@/features/payment/api/payments.queries";
+import { useCreatePayment, useWalletBalance } from "@/features/payment/api/payments.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { createTossPayment } from "@/shared/lib/toss";
 import { cn } from "@/shared/lib/utils";
@@ -31,6 +31,7 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const order = useOrder(orderId);
   const createPayment = useCreatePayment();
+  const balance = useWalletBalance();
   const [method, setMethod] = useState<PayMethod>("WALLET");
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +46,9 @@ function CheckoutPage() {
 
   const item = order.data;
   const alreadyPaid = item.status !== "PAYMENT_PENDING";
+  const walletBalance = balance.data?.balance ?? 0;
+  const insufficientWallet =
+    method === "WALLET" && !balance.isPending && walletBalance < item.totalPrice;
 
   async function pay() {
     setError(null);
@@ -133,18 +137,44 @@ function CheckoutPage() {
                   )}
                 >
                   <p className="font-medium text-sm">{option.label}</p>
-                  <p className="mt-1 text-muted-foreground text-xs">{option.desc}</p>
+                  <p className="mt-1 text-muted-foreground text-xs">
+                    {option.value === "WALLET"
+                      ? balance.isPending
+                        ? "잔액 불러오는 중…"
+                        : `잔액 ${formatKrw(walletBalance)}`
+                      : option.desc}
+                  </p>
                 </button>
               ))}
             </div>
           </section>
+
+          {method === "WALLET" ? (
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className={cn(
+                  "text-xs",
+                  insufficientWallet ? "text-destructive" : "text-muted-foreground",
+                )}
+              >
+                {insufficientWallet
+                  ? "잔액이 부족합니다. 충전 후 결제해 주세요."
+                  : "충전된 예치금으로 즉시 결제됩니다."}
+              </span>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/mypage" search={{ tab: "wallet" }}>
+                  충전
+                </Link>
+              </Button>
+            </div>
+          ) : null}
 
           {error ? <p className="text-destructive text-sm">{error}</p> : null}
 
           <Button
             size="lg"
             className="w-full"
-            disabled={createPayment.isPending}
+            disabled={createPayment.isPending || insufficientWallet}
             onClick={() => void pay()}
           >
             {createPayment.isPending ? "결제 처리 중…" : `${formatKrw(item.totalPrice)} 결제하기`}
