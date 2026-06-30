@@ -121,6 +121,20 @@ describe("정산 조회·재시도 플로우 (MSW)", () => {
     });
   });
 
+  it("관리자 판매자·주문별 정산 결과에 판매자 ID를 표시한다", async () => {
+    const user = userEvent.setup();
+    render(<SettlementPanel scope="admin" />, { wrapper });
+
+    expect(await screen.findByRole("columnheader", { name: "판매자 ID" })).toBeInTheDocument();
+    expect((await screen.findAllByText(SELLER_ID)).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("tab", { name: "주문별 정산" }));
+
+    expect(await screen.findByText("order-1")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "판매자 ID" })).toBeInTheDocument();
+    expect(screen.getAllByText(SELLER_ID).length).toBeGreaterThan(0);
+  });
+
   it("판매자 주문별 정산 탭에서 활성 sellerId와 입력한 orderId로 검색한다", async () => {
     const orderId = "order-1";
     let receivedSellerId: string | null = null;

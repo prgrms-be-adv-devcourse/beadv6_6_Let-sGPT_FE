@@ -317,8 +317,12 @@ export function SettlementPanel({ scope, sellerId }: SettlementPanelProps) {
         ) : null}
       </div>
 
-      {tab === "sellers" ? <SellerView query={sellers} page={page} onPage={setPage} /> : null}
-      {tab === "orders" ? <OrderView query={orders} page={page} onPage={setPage} /> : null}
+      {tab === "sellers" ? (
+        <SellerView query={sellers} showSellerId={scope === "admin"} page={page} onPage={setPage} />
+      ) : null}
+      {tab === "orders" ? (
+        <OrderView query={orders} showSellerId={scope === "admin"} page={page} onPage={setPage} />
+      ) : null}
       {scope === "admin" && tab === "batches" ? (
         <BatchResultView query={batchResults} retry={retry} page={page} onPage={setPage} />
       ) : null}
@@ -340,10 +344,12 @@ function EmptyOrError({ query }: { query: { isPending: boolean; isError: boolean
 
 function SellerView({
   query,
+  showSellerId,
   page,
   onPage,
 }: {
   query: ReturnType<typeof useSellerSettlements>;
+  showSellerId: boolean;
   page: number;
   onPage: (page: number) => void;
 }) {
@@ -367,6 +373,7 @@ function SellerView({
         <thead className="border-border border-b bg-surface/60 text-muted-foreground">
           <tr>
             <th className={thClass}>정산월</th>
+            {showSellerId ? <th className={thClass}>판매자 ID</th> : null}
             <th className={`${thClass} text-right`}>주문수</th>
             <th className={`${thClass} text-right`}>결제액</th>
             <th className={`${thClass} text-right`}>수수료</th>
@@ -379,6 +386,13 @@ function SellerView({
           {content.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-surface/40">
               <td className={`${tdClass} tabular-nums`}>{formatMonth(item.settlementMonth)}</td>
+              {showSellerId ? (
+                <td
+                  className={`${tdClass} whitespace-nowrap font-mono text-muted-foreground text-xs`}
+                >
+                  {item.sellerId}
+                </td>
+              ) : null}
               <td className={`${tdClass} text-right tabular-nums`}>{item.totalOrderCount}</td>
               <td className={`${tdClass} text-right tabular-nums`}>
                 {formatKrw(item.totalPaidAmount)}
@@ -409,10 +423,12 @@ function SellerView({
 
 function OrderView({
   query,
+  showSellerId,
   page,
   onPage,
 }: {
   query: ReturnType<typeof useSettlementOrders>;
+  showSellerId: boolean;
   page: number;
   onPage: (page: number) => void;
 }) {
@@ -436,6 +452,7 @@ function OrderView({
         <thead className="border-border border-b bg-surface/60 text-muted-foreground">
           <tr>
             <th className={thClass}>정산월</th>
+            {showSellerId ? <th className={thClass}>판매자 ID</th> : null}
             <th className={thClass}>주문</th>
             <th className={`${thClass} text-right`}>결제액</th>
             <th className={`${thClass} text-right`}>수수료</th>
@@ -448,6 +465,13 @@ function OrderView({
           {content.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-surface/40">
               <td className={`${tdClass} tabular-nums`}>{formatMonth(item.settlementMonth)}</td>
+              {showSellerId ? (
+                <td
+                  className={`${tdClass} whitespace-nowrap font-mono text-muted-foreground text-xs`}
+                >
+                  {item.sellerId}
+                </td>
+              ) : null}
               <td className={`${tdClass} font-mono text-muted-foreground text-xs`}>
                 {item.orderId}
               </td>
