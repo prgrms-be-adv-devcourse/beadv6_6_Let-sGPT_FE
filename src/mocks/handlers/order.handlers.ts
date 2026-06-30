@@ -41,6 +41,7 @@ export const orderHandlers = [
       dropId: string;
       quantity: number;
       idempotencyKey: string;
+      orderName?: string;
     };
 
     const existingId = mockDb.orderIdByIdempotencyKey.get(body.idempotencyKey);
@@ -73,12 +74,14 @@ export const orderHandlers = [
 
     const now = Date.now();
     const orderId = crypto.randomUUID();
+    const orderNumber = `ORD-${now}-${(now % 0xffffff).toString(16)}`;
     const order: Order = {
       orderId,
-      orderNumber: `ORD-${now}-${(now % 0xffffff).toString(16)}`,
+      orderNumber,
       dropId: drop.id,
       productId: drop.productId,
-      productName: drop.productName,
+      // BE 와 동일: 클라가 보낸 표시명을 저장, 없으면 주문번호로 폴백.
+      productName: body.orderName?.trim() ? body.orderName : orderNumber,
       quantity: body.quantity,
       totalPrice: drop.dropPrice * body.quantity,
       status: "PAYMENT_PENDING",

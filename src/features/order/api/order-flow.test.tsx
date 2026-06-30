@@ -21,7 +21,11 @@ describe("구매 플로우 (주문→결제→완료, MSW 상태저장)", () => 
 
     let orderId = "";
     await act(async () => {
-      const created = await result.current.order.mutateAsync({ dropId: "d1", quantity: 1 });
+      const created = await result.current.order.mutateAsync({
+        dropId: "d1",
+        quantity: 1,
+        orderName: "한정판 운동화",
+      });
       orderId = created.orderId;
       expect(created.status).toBe("PAYMENT_PENDING");
 

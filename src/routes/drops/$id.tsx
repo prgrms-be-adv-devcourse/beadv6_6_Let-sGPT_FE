@@ -48,7 +48,7 @@ function DropDetailPage() {
       return;
     }
     createOrder.mutate(
-      { dropId: item.id, quantity },
+      { dropId: item.id, quantity, orderName: item.productName },
       {
         onSuccess: (order) =>
           navigate({ to: "/checkout/$orderId", params: { orderId: order.orderId } }),
