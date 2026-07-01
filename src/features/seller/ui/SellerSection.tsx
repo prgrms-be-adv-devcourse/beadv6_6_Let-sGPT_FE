@@ -14,6 +14,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useCreateSellerInfo, useMySellerInfos } from "../api/sellers.queries";
 import { type SellerRegisterFormValues, sellerRegisterFormSchema } from "../model/seller.schema";
 
@@ -58,7 +59,7 @@ export function SellerSection() {
       <div className="space-y-4">
         <h3 className="font-medium">내 판매자 정보</h3>
         {sellers.isLoading ? (
-          <p className="text-muted-foreground text-sm">불러오는 중…</p>
+          <LoadingState label="판매자 정보를 불러오는 중" className="justify-start py-0" />
         ) : sellers.data && sellers.data.length > 0 ? (
           <ul className="divide-y divide-border border-border border-y">
             {sellers.data.map((seller) => (

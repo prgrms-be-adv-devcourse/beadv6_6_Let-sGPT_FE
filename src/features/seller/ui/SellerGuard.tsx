@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Button } from "@/shared/ui/button";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useActiveSellerInfo } from "../api/sellers.queries";
 
 type Props = {
@@ -16,7 +17,7 @@ export function SellerGuard({ children }: Props) {
   const { sellerInfo, isPending, isError } = useActiveSellerInfo();
 
   if (isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="판매자 정보를 불러오는 중" />;
   }
   if (isError) {
     return (

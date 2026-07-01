@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { DropCreateForm } from "./DropCreateForm";
 
 const sectionLabel = "font-medium text-muted-foreground text-xs uppercase tracking-[0.18em]";
@@ -50,7 +51,7 @@ export function DropCreateDialog({ sellerInfoId }: { sellerInfoId: string }) {
 
         <div className="px-6 py-6">
           {products.isPending ? (
-            <p className="py-8 text-center text-muted-foreground text-sm">상품을 불러오는 중…</p>
+            <LoadingState label="상품을 불러오는 중" className="py-8" />
           ) : products.isError ? (
             <p className="py-8 text-center text-destructive text-sm">상품을 불러오지 못했습니다.</p>
           ) : items.length === 0 ? (

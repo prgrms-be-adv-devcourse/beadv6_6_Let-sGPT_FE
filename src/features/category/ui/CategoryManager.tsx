@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import {
   useCategories,
   useCreateCategory,
@@ -58,7 +59,7 @@ export function CategoryManager() {
       </form>
 
       {categories.isPending ? (
-        <p className="py-12 text-center text-muted-foreground text-sm">불러오는 중…</p>
+        <LoadingState label="카테고리를 불러오는 중" className="py-12" />
       ) : categories.isError ? (
         <p className="py-12 text-center text-destructive text-sm">
           카테고리를 불러오지 못했습니다.

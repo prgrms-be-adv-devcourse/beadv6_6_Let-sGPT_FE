@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useOngoingDrops } from "../api/drops.queries";
 import { DropCard } from "./DropCard";
 
@@ -37,7 +38,7 @@ export function OngoingDropList() {
         </Link>
       </div>
 
-      {isPending ? <Message>진행중인 드롭을 불러오는 중…</Message> : null}
+      {isPending ? <LoadingState label="진행중인 드롭을 불러오는 중" className="py-10" /> : null}
       {isError ? <Message>드롭 정보를 불러오지 못했습니다.</Message> : null}
       {data && count === 0 ? <Message>진행중인 드롭이 없습니다.</Message> : null}
       {data && count > 0 ? (

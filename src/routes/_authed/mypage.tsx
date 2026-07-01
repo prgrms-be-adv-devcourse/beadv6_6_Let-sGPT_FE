@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { LoadingState } from "@/shared/ui/LoadingState";
 
 export const Route = createFileRoute("/_authed/mypage")({
   validateSearch: z.object({
@@ -98,7 +99,7 @@ function MyPage() {
 
     // 판매 관리(상품·드롭·정산) — 활성 판매자 정보가 있어야 함.
     if (seller.isPending) {
-      return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+      return <LoadingState label="판매자 정보를 불러오는 중" />;
     }
     if (seller.isError) {
       return (

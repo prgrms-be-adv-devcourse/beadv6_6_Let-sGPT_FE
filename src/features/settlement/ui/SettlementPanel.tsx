@@ -4,6 +4,7 @@ import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { MenuSelect } from "@/shared/ui/MenuSelect";
 import { MonthPicker } from "@/shared/ui/MonthPicker";
 import { Pagination } from "@/shared/ui/Pagination";
@@ -332,7 +333,7 @@ export function SettlementPanel({ scope, sellerId }: SettlementPanelProps) {
 
 function EmptyOrError({ query }: { query: { isPending: boolean; isError: boolean } }) {
   if (query.isPending) {
-    return <p className="py-12 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="정산을 불러오는 중" className="py-12" />;
   }
   if (query.isError) {
     return (

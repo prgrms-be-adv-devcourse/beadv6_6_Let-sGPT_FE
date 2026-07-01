@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useMyDrops } from "../api/drops.queries";
 import { DropCreateDialog } from "./DropCreateDialog";
 import { DropStatusPill } from "./DropStatusPill";
@@ -18,7 +19,7 @@ export function SellerDropList({ sellerInfoId }: { sellerInfoId: string }) {
       </div>
 
       {drops.isPending ? (
-        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+        <LoadingState label="드롭을 불러오는 중" />
       ) : myDrops.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground text-sm">등록된 드롭이 없습니다.</p>
       ) : (

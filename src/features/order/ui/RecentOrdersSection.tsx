@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useMyOrders } from "../api/orders.queries";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 
@@ -10,7 +11,7 @@ export function RecentOrdersSection() {
   const orders = useMyOrders({ page: 0, size: 5 });
 
   if (orders.isPending) {
-    return <p className="py-12 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="주문을 불러오는 중" className="py-12" />;
   }
   if (orders.isError) {
     return (

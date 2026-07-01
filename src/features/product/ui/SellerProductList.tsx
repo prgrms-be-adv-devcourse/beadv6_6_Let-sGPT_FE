@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useMyProducts } from "../api/products.queries";
 
 /** 판매자 본인 상품 목록 — 상품 관리(마이페이지 탭 / 판매자 콘솔 공용). */
@@ -18,7 +19,7 @@ export function SellerProductList({ sellerInfoId }: { sellerInfoId: string }) {
       </div>
 
       {products.isPending ? (
-        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+        <LoadingState label="상품을 불러오는 중" />
       ) : products.isError ? (
         <p className="py-16 text-center text-destructive text-sm">상품을 불러오지 못했습니다.</p>
       ) : products.data.content.length === 0 ? (

@@ -10,6 +10,7 @@ import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { MenuSelect } from "@/shared/ui/MenuSelect";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { Tag } from "@/shared/ui/Tag";
@@ -108,7 +109,7 @@ function DropListPage() {
       </div>
 
       {drops.isPending ? (
-        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+        <LoadingState label="드롭을 불러오는 중" />
       ) : drops.isError ? (
         <p className="py-16 text-center text-destructive text-sm">드롭을 불러오지 못했습니다.</p>
       ) : rows.length === 0 && !featured ? (

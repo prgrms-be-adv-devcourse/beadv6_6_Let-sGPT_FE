@@ -6,6 +6,7 @@ import { useProduct } from "@/features/product/api/products.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { buildGallery } from "@/shared/lib/image";
 import { ImageGallery } from "@/shared/ui/ImageGallery";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { Tag } from "@/shared/ui/Tag";
 
 export const Route = createFileRoute("/products/$id")({
@@ -18,7 +19,7 @@ function ProductDetailPage() {
   const dropList = useDropList();
 
   if (product.isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="상품을 불러오는 중" />;
   }
   if (product.isError || !product.data) {
     return (

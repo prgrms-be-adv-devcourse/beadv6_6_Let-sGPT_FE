@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useMe, useUpdateMember } from "../api/auth.queries";
 import { type ProfileFormValues, profileFormSchema, type Role } from "../model/auth.schema";
 import { useAuthStore } from "../store/authStore";
@@ -57,7 +58,7 @@ export function ProfileSection() {
   }
 
   if (!member) {
-    return <p className="text-muted-foreground text-sm">회원 정보를 불러오는 중…</p>;
+    return <LoadingState label="회원 정보를 불러오는 중" className="justify-start py-0" />;
   }
 
   return (

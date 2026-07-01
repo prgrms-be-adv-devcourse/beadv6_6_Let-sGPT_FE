@@ -5,6 +5,7 @@ import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
 import { useRequestRefund } from "@/features/payment/api/payments.queries";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
+import { LoadingState } from "@/shared/ui/LoadingState";
 
 export const Route = createFileRoute("/_authed/orders/$orderId/")({
   component: OrderDetailPage,
@@ -17,7 +18,7 @@ function OrderDetailPage() {
   const refund = useRequestRefund();
 
   if (order.isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="주문을 불러오는 중" />;
   }
   if (order.isError || !order.data) {
     return (
@@ -28,10 +29,13 @@ function OrderDetailPage() {
   const item = order.data;
 
   async function handleRefundRequest() {
+    if (!item.paymentId) {
+      return;
+    }
     try {
       await cancel.mutateAsync(orderId);
       await refund.mutateAsync({
-        paymentId: item.paymentId!,
+        paymentId: item.paymentId,
         amount: item.totalPrice,
         reason: "고객 환불 요청",
       });

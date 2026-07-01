@@ -8,6 +8,7 @@ import type { Product } from "@/features/product/model/product.schema";
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { MenuSelect } from "@/shared/ui/MenuSelect";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { Tag } from "@/shared/ui/Tag";
@@ -100,7 +101,7 @@ function ProductListPage() {
       </div>
 
       {products.isPending ? (
-        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
+        <LoadingState label="상품을 불러오는 중" />
       ) : products.isError ? (
         <p className="py-16 text-center text-destructive text-sm">상품을 불러오지 못했습니다.</p>
       ) : filtered.length === 0 ? (

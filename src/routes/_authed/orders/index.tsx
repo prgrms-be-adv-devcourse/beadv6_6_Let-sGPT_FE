@@ -5,6 +5,7 @@ import { useMyOrders } from "@/features/order/api/orders.queries";
 import type { OrderStatus } from "@/features/order/model/order.schema";
 import { OrderStatusBadge } from "@/features/order/ui/OrderStatusBadge";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { Pagination } from "@/shared/ui/Pagination";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 
@@ -50,9 +51,7 @@ function OrderListPage() {
         />
       </div>
 
-      {orders.isPending ? (
-        <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>
-      ) : null}
+      {orders.isPending ? <LoadingState label="주문을 불러오는 중" /> : null}
       {orders.isError ? (
         <p className="py-16 text-center text-destructive text-sm">주문을 불러오지 못했습니다.</p>
       ) : null}

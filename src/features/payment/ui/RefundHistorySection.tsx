@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { formatKrw } from "@/shared/lib/format";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { Pagination } from "@/shared/ui/Pagination";
 import { useRefundHistories } from "../api/payments.queries";
 import type { RefundResponse } from "../model/payment.schema";
@@ -19,7 +20,7 @@ export function RefundHistorySection() {
   const histories = useRefundHistories({ page, size: PAGE_SIZE });
 
   if (histories.isPending) {
-    return <p className="py-12 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="환불 이력을 불러오는 중" className="py-12" />;
   }
   if (histories.isError) {
     return (

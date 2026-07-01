@@ -13,6 +13,7 @@ import {
 import { ProductForm } from "@/features/product/ui/ProductForm";
 import { SellerGuard } from "@/features/seller/ui/SellerGuard";
 import { Button } from "@/shared/ui/button";
+import { LoadingState } from "@/shared/ui/LoadingState";
 
 export const Route = createFileRoute("/seller/products/$id")({
   component: SellerProductDetailPage,
@@ -59,7 +60,7 @@ function ProductManager({ id, sellerInfoId }: { id: string; sellerInfoId: string
   const remove = useDeleteProduct();
 
   if (product.isPending) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">불러오는 중…</p>;
+    return <LoadingState label="상품을 불러오는 중" />;
   }
   if (product.isError || !product.data) {
     return (
