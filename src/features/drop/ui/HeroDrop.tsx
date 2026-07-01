@@ -3,12 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
+import { LoadingState } from "@/shared/ui/LoadingState";
 import { useUpcomingDrops } from "../api/drops.queries";
 import { Countdown } from "./Countdown";
 
 /** 홈 히어로 — 가장 가까운 오픈 예정 드롭을 카운트다운과 함께 에디토리얼하게 강조. */
 export function HeroDrop() {
-  const { data } = useUpcomingDrops();
+  const { data, isPending, isError } = useUpcomingDrops();
   const nextDrop = data?.content[0];
 
   return (
@@ -18,7 +19,13 @@ export function HeroDrop() {
           Next Drop · 오픈 예정
         </p>
 
-        {nextDrop ? (
+        {isPending ? (
+          <LoadingState label="오픈 예정 드롭을 불러오는 중" className="justify-start py-12" />
+        ) : isError ? (
+          <p className="mt-5 max-w-md text-destructive text-sm">
+            오픈 예정 드롭을 불러오지 못했습니다.
+          </p>
+        ) : nextDrop ? (
           <>
             <h1 className="mt-5 font-serif text-5xl leading-[1.05] tracking-tight sm:text-6xl">
               {nextDrop.productName}
