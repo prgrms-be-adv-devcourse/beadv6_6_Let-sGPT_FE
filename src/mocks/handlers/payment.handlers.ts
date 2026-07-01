@@ -1,10 +1,10 @@
 import { HttpResponse, http } from "msw";
-
 import type {
   PaymentResponse,
   RefundResponse,
   WalletChargeResponse,
 } from "@/features/payment/model/payment.schema";
+import { uuid } from "@/shared/lib/id";
 import { mockDb } from "../data/mockDb";
 
 function completeOrder(orderId: string, paymentId: string) {
@@ -22,7 +22,7 @@ export const paymentHandlers = [
       amount: number;
       method: "WALLET" | "PG";
     };
-    const paymentId = crypto.randomUUID();
+    const paymentId = uuid();
 
     if (body.method === "WALLET") {
       if (mockDb.wallet.balance < body.amount) {
@@ -70,7 +70,7 @@ export const paymentHandlers = [
     const payment = [...mockDb.payments.values()].find(
       (item) => item.orderId === body.orderId && item.method === "PG",
     );
-    const paymentId = payment?.paymentId ?? crypto.randomUUID();
+    const paymentId = payment?.paymentId ?? uuid();
     if (payment) {
       payment.status = "APPROVED";
       payment.paymentKey = body.paymentKey;
@@ -101,7 +101,7 @@ export const paymentHandlers = [
       reason: string;
     };
     const refund: RefundResponse = {
-      refundId: crypto.randomUUID(),
+      refundId: uuid(),
       paymentId: body.paymentId,
       amount: body.amount,
       status: "COMPLETE",
@@ -128,7 +128,7 @@ export const paymentHandlers = [
 
   http.post("*/api/v1/wallet/charge", async ({ request }) => {
     const body = (await request.json()) as { amount: number; method: "MOCK" | "PG" };
-    const chargeId = crypto.randomUUID();
+    const chargeId = uuid();
     if (body.method === "MOCK") {
       mockDb.wallet.balance += body.amount;
       mockDb.charges.set(chargeId, {

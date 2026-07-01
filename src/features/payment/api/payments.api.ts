@@ -1,4 +1,5 @@
 import { apiFetch } from "@/shared/api/http";
+import { uuid } from "@/shared/lib/id";
 import {
   getChargeKey,
   getOrCreatePaymentKey,
@@ -55,7 +56,7 @@ export function requestRefund(input: {
   return apiFetch("/api/v1/refunds", refundResponseSchema, {
     method: "POST",
     body: input,
-    idempotencyKey: `refund-${crypto.randomUUID()}`,
+    idempotencyKey: `refund-${uuid()}`,
   });
 }
 

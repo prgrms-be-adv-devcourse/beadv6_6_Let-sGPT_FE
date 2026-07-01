@@ -1,3 +1,5 @@
+import { uuid } from "@/shared/lib/id";
+
 interface TossPaymentRequest {
   method: "CARD" | "TRANSFER" | "VIRTUAL_ACCOUNT" | "MOBILE_PHONE";
   amount: { currency: "KRW"; value: number };
@@ -29,6 +31,6 @@ declare global {
 
 export function createTossPayment(): TossPaymentHandle {
   const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
-  const customerKey = crypto.randomUUID();
+  const customerKey = uuid();
   return TossPayments(clientKey).payment({ customerKey });
 }

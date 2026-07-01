@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
-
 import type { DropCard, DropCardPage } from "@/features/drop/model/drop.schema";
+import { uuid } from "@/shared/lib/id";
 import { drops, findDrop } from "../data/drops";
 import { findProduct, products, SELLER_ID } from "../data/products";
 
@@ -97,7 +97,7 @@ export const dropHandlers = [
         { status: 404 },
       );
     }
-    const id = crypto.randomUUID();
+    const id = uuid();
     // 오픈 시각이 지났으면 OPEN, 아니면 REGISTERED(예정)로 파생.
     const status: DropCard["status"] = new Date(body.openAt) <= new Date() ? "OPEN" : "REGISTERED";
     const created: DropCard = {

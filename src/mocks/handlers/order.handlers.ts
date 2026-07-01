@@ -1,11 +1,11 @@
 import { HttpResponse, http } from "msw";
-
 import type {
   CreateOrderResponse,
   Order,
   OrderStatus,
   OrderSummary,
 } from "@/features/order/model/order.schema";
+import { uuid } from "@/shared/lib/id";
 import { findDrop } from "../data/drops";
 import { mockDb } from "../data/mockDb";
 
@@ -74,7 +74,7 @@ export const orderHandlers = [
     }
 
     const now = Date.now();
-    const orderId = crypto.randomUUID();
+    const orderId = uuid();
     const orderNumber = `ORD-${now}-${(now % 0xffffff).toString(16)}`;
     const order: Order = {
       orderId,

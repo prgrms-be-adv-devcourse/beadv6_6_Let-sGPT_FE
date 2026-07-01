@@ -1,4 +1,5 @@
 import { HttpResponse, http } from "msw";
+import { uuid } from "@/shared/lib/id";
 
 import { categories } from "../data/categories";
 
@@ -7,7 +8,7 @@ export const categoryHandlers = [
 
   http.post("*/api/v1/categories", async ({ request }) => {
     const body = (await request.json()) as { name: string };
-    const id = `c-${crypto.randomUUID().slice(0, 8)}`;
+    const id = `c-${uuid().slice(0, 8)}`;
     categories.push({ id, name: body.name });
     return new HttpResponse(null, {
       status: 201,

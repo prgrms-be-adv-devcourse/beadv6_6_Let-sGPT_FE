@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
-
 import type { Product, ProductPage } from "@/features/product/model/product.schema";
+import { uuid } from "@/shared/lib/id";
 import { categories } from "../data/categories";
 import { DEFAULT_SELLER_NAME, products, SELLER_ID } from "../data/products";
 
@@ -27,7 +27,7 @@ function paginate(list: Product[], page: number, size: number): ProductPage {
 export const productHandlers = [
   // 상품 이미지 업로드(BE: 로컬 파일 저장 → { key, url }). 목은 키만 발급.
   http.post("*/api/v1/products/images", () => {
-    const key = `mock-${crypto.randomUUID()}.jpg`;
+    const key = `mock-${uuid()}.jpg`;
     return HttpResponse.json({ key, url: `/api/v1/products/images/${key}` });
   }),
 
@@ -97,7 +97,7 @@ export const productHandlers = [
 
   http.post("*/api/v1/products", async ({ request }) => {
     const body = (await request.json()) as ProductWriteBody;
-    const id = crypto.randomUUID();
+    const id = uuid();
     const category = categories.find((item) => item.id === body.categoryId);
     products.unshift({
       id,
