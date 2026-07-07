@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy-fe:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: [self-hosted, ec2-fe]
+    permissions: { contents: read, packages: read }
+    steps:
+      - name: GHCR 로그인
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 이미지 pull 후 nginx 컨테이너 재기동
+        run: |
+          IMG=$(echo ghcr.io/${{ github.repository }}/frontend:latest | tr '[:upper:]' '[:lower:]')
+          docker pull "$IMG"
+          docker rm -f openat-nginx 2>/dev/null || true
+          docker run -d --name openat-nginx --network openat --restart always -p 80:80 "$IMG"
