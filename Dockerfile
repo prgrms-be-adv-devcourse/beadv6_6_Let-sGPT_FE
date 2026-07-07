@@ -10,8 +10,10 @@ COPY pnpm-lock.yaml package.json .npmrc pnpm-workspace.yaml ./
 RUN git init -q && corepack pnpm install --frozen-lockfile
 COPY . .
 ARG VITE_API_BASE_URL
+ARG VITE_API_MOCKING
 ARG VITE_TOSS_CLIENT_KEY
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_API_MOCKING=$VITE_API_MOCKING
 ENV VITE_TOSS_CLIENT_KEY=$VITE_TOSS_CLIENT_KEY
 RUN corepack pnpm routes:gen && corepack pnpm build   # -> /app/dist
 

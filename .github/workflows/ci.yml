@@ -63,8 +63,9 @@ jobs:
           context: .
           push: true
           build-args: |
-            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
-            VITE_TOSS_CLIENT_KEY=${{ secrets.VITE_TOSS_CLIENT_KEY }}
+            VITE_API_BASE_URL=${{ fromJSON(secrets.ENV_SECRETS).VITE_API_BASE_URL }}
+            VITE_API_MOCKING=${{ fromJSON(secrets.ENV_SECRETS).VITE_API_MOCKING }}
+            VITE_TOSS_CLIENT_KEY=${{ fromJSON(secrets.ENV_SECRETS).VITE_TOSS_CLIENT_KEY }}
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
