@@ -67,7 +67,15 @@ jobs:
             VITE_API_MOCKING=${{ fromJSON(secrets.ENV_SECRETS).VITE_API_MOCKING }}
             VITE_TOSS_CLIENT_KEY=${{ fromJSON(secrets.ENV_SECRETS).VITE_TOSS_CLIENT_KEY }}
           tags: |
-            ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # BE 리포에 새 이미지 SHA 통보 → deploy.yml이 kustomization.yaml 핀 + ArgoCD 수렴까지 자동 수행.
+      - name: BE에 이미지 빌드 완료 통보 (repository_dispatch)
+        env:
+          GH_TOKEN: ${{ secrets.BE_DISPATCH_PAT }}
+        run: |
+          gh api repos/prgrms-be-adv-devcourse/beadv6_6_Let-sGPT_BE/dispatches \
+            -f event_type=fe-image-built \
+            -f "client_payload[sha]=${{ github.sha }}"
