@@ -67,7 +67,6 @@ jobs:
             VITE_API_MOCKING=${{ fromJSON(secrets.ENV_SECRETS).VITE_API_MOCKING }}
             VITE_TOSS_CLIENT_KEY=${{ fromJSON(secrets.ENV_SECRETS).VITE_TOSS_CLIENT_KEY }}
           tags: |
-            ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
