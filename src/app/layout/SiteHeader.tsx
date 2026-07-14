@@ -83,7 +83,7 @@ export function SiteHeader() {
           <Link to="/drops" className={navLinkClass}>
             Drops
           </Link>
-          <Link to="/products" className={navLinkClass}>
+          <Link to="/products_es" className={navLinkClass}>
             Shop
           </Link>
         </nav>

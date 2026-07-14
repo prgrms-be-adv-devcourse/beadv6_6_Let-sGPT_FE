@@ -16,6 +16,7 @@ import { Route as ForbiddenRouteImport } from "./routes/forbidden";
 import { Route as AdminRouteImport } from "./routes/admin";
 import { Route as AuthedRouteImport } from "./routes/_authed";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as Products_esIndexRouteImport } from "./routes/products_es/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
 import { Route as DropsIndexRouteImport } from "./routes/drops/index";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
@@ -67,6 +68,11 @@ const AuthedRoute = AuthedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const Products_esIndexRoute = Products_esIndexRouteImport.update({
+  id: "/products_es/",
+  path: "/products_es/",
   getParentRoute: () => rootRouteImport,
 } as any);
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   "/admin/": typeof AdminIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
+  "/products_es/": typeof Products_esIndexRoute;
   "/checkout/$orderId": typeof AuthedCheckoutOrderIdRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   "/admin": typeof AdminIndexRoute;
   "/drops": typeof DropsIndexRoute;
   "/products": typeof ProductsIndexRoute;
+  "/products_es": typeof Products_esIndexRoute;
   "/checkout/$orderId": typeof AuthedCheckoutOrderIdRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   "/admin/": typeof AdminIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
+  "/products_es/": typeof Products_esIndexRoute;
   "/_authed/checkout/$orderId": typeof AuthedCheckoutOrderIdRoute;
   "/seller/products/$id": typeof SellerProductsIdRoute;
   "/seller/products/new": typeof SellerProductsNewRoute;
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | "/admin/"
     | "/drops/"
     | "/products/"
+    | "/products_es/"
     | "/checkout/$orderId"
     | "/seller/products/$id"
     | "/seller/products/new"
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | "/admin"
     | "/drops"
     | "/products"
+    | "/products_es"
     | "/checkout/$orderId"
     | "/seller/products/$id"
     | "/seller/products/new"
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | "/admin/"
     | "/drops/"
     | "/products/"
+    | "/products_es/"
     | "/_authed/checkout/$orderId"
     | "/seller/products/$id"
     | "/seller/products/new"
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   ProductsIdRoute: typeof ProductsIdRoute;
   DropsIndexRoute: typeof DropsIndexRoute;
   ProductsIndexRoute: typeof ProductsIndexRoute;
+  Products_esIndexRoute: typeof Products_esIndexRoute;
   TossChargeSuccessRoute: typeof TossChargeSuccessRoute;
   TossPaymentSuccessRoute: typeof TossPaymentSuccessRoute;
 }
@@ -387,6 +400,13 @@ declare module "@tanstack/react-router" {
       path: "/";
       fullPath: "/";
       preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/products_es/": {
+      id: "/products_es/";
+      path: "/products_es";
+      fullPath: "/products_es/";
+      preLoaderRoute: typeof Products_esIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/products/": {
@@ -580,6 +600,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsIdRoute: ProductsIdRoute,
   DropsIndexRoute: DropsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
+  Products_esIndexRoute: Products_esIndexRoute,
   TossChargeSuccessRoute: TossChargeSuccessRoute,
   TossPaymentSuccessRoute: TossPaymentSuccessRoute,
 };

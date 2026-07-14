@@ -45,12 +45,14 @@
 | GET | `/api/v1/products/me?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>`(본인 스토어) | **판매자토큰**(⚠️ GET이지만 BE가 X-Seller-Id로 스토어 식별 → 회원 토큰이면 401) |
 | POST | `/api/v1/products/images` | 멀티파트 `file` | `{ key, url }` | **인증** |
 | GET | `/api/v1/products/images/{key}` | - | 이미지 바이트(스트리밍) | - |
+| POST | `/api/v1/searchs/search` | `{query, categoryName, startPrice, endPrice, page, size, sort}` | `PageResponse<SearchProductResponse>` | - |
 
 - `ProductResponse{ id, sellerId(=sellerInfoId), sellerName:null, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, imageKeys:string[], createdAt }`
 - `ProductCreateRequest`/`ProductUpdateRequest`: `name, description?, categoryId?, price?, thumbnailKey?, imageKeys?`.
 - **판매자명 ✅**: `sellerName` 응답 포함(미연동 시 null) — 카드·상세 벤더 표기.
 - **이미지 ✅**: 대표 `thumbnailKey` + 갤러리 `imageKeys`. 업로드 `POST /products/images`(멀티파트 `file`→`{key,url}`), 조회 `GET /products/images/{key}`. FE 는 키를 `{base}/api/v1/products/images/{key}` 로 렌더(`resolveImageSrc`). 세미=로컬 저장 · 파이널=S3.
 - **본인 상품 목록 ✅**: `GET /products/me`(활성 스토어 기준).
+- **Elasticsearch 상품 검색 ✅**: `POST /searchs/search`. `query`는 자연어 벡터 검색, `categoryName`은 카테고리명 필터, `startPrice`/`endPrice`는 가격 범위다. `sort` 허용값은 `createdAt,desc`·`price,asc`·`price,desc`.
 
 ## drop (드롭)
 | M·P | 경로 | 요청 | 응답 | 인증 |

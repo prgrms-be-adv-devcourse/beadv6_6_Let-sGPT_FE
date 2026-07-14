@@ -13,6 +13,16 @@ type ProductWriteBody = {
   imageKeys?: string[];
 };
 
+type ProductSearchBody = {
+  query: string | null;
+  categoryName: string | null;
+  startPrice: number | null;
+  endPrice: number | null;
+  page: number;
+  size: number;
+  sort: "createdAt,desc" | "price,asc" | "price,desc";
+};
+
 function paginate(list: Product[], page: number, size: number): ProductPage {
   const start = page * size;
   return {
@@ -25,6 +35,38 @@ function paginate(list: Product[], page: number, size: number): ProductPage {
 }
 
 export const productHandlers = [
+  http.post("*/api/v1/searchs/search", async ({ request }) => {
+    const body = (await request.json()) as ProductSearchBody;
+    let filtered = products.filter((product) => {
+      if (body.categoryName && product.categoryName !== body.categoryName) return false;
+      if (body.startPrice !== null && (product.price === null || product.price < body.startPrice)) {
+        return false;
+      }
+      if (body.endPrice !== null && (product.price === null || product.price > body.endPrice)) {
+        return false;
+      }
+      if (body.query) {
+        const searchable = `${product.name} ${product.description} ${product.categoryName ?? ""}`;
+        if (!searchable.toLocaleLowerCase().includes(body.query.toLocaleLowerCase())) return false;
+      }
+      return true;
+    });
+
+    const [field, direction] = body.sort.split(",");
+    const sign = direction === "asc" ? 1 : -1;
+    filtered = [...filtered].sort((a, b) => {
+      if (field === "price") {
+        if (a.price === null && b.price === null) return 0;
+        if (a.price === null) return 1;
+        if (b.price === null) return -1;
+        return (a.price - b.price) * sign;
+      }
+      return a.createdAt.localeCompare(b.createdAt) * sign;
+    });
+
+    return HttpResponse.json(paginate(filtered, body.page, body.size));
+  }),
+
   // 상품 이미지 업로드(BE: 로컬 파일 저장 → { key, url }). 목은 키만 발급.
   http.post("*/api/v1/products/images", () => {
     const key = `mock-${crypto.randomUUID()}.jpg`;
