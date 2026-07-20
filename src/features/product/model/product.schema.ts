@@ -29,23 +29,6 @@ export type ProductPage = z.infer<typeof productPageSchema>;
 export const imageUploadSchema = z.object({ key: z.string(), url: z.string() });
 export type ImageUpload = z.infer<typeof imageUploadSchema>;
 
-/**
- * presign 발급 응답(`POST /api/v1/products/images/presign`) — S3 staging 직행 PUT 용.
- * stagingKey: promote 전 staging 객체 키(상품 write body 로 그대로 전송) /
- * uploadUrl: 서명된 S3 PUT URL(Content-Type 서명 대상) / expiresAt: 서명 만료 ISO.
- */
-export const presignedUploadSchema = z.object({
-  stagingKey: z.string(),
-  uploadUrl: z.string(),
-  expiresAt: z.string(),
-});
-export type PresignedUpload = z.infer<typeof presignedUploadSchema>;
-
-// ── 클라이언트 사전검증 상수(UX용 사전차단 — 진짜 게이트는 BE HeadObject) ──
-// 잠정치 — BE 확정 시 동기화(BE Q1: 크기 상한 / Q2: 타입 화이트리스트).
-export const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-export const IMAGE_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-
 // ── 판매자 상품 등록/수정 폼 (BE ProductCreateRequest/ProductUpdateRequest 제약과 일치) ──
 const optionalDigits = (label: string) =>
   z

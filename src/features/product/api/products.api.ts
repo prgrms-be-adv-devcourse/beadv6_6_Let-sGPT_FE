@@ -5,10 +5,8 @@ import { apiFetch } from "@/shared/api/http";
 import {
   type ImageUpload,
   imageUploadSchema,
-  type PresignedUpload,
   type ProductPage,
   type ProductWriteBody,
-  presignedUploadSchema,
   productPageSchema,
 } from "../model/product.schema";
 
@@ -56,46 +54,10 @@ export function deleteProduct(id: string, auth: SellerAuth): Promise<void> {
 }
 
 /**
- * 이미지 presign 발급(`POST /products/images/presign`) → `{ stagingKey, uploadUrl, expiresAt }`.
- * S3 staging 직행 PUT 을 위한 서명 URL 발급. 발급도 `POST /products/**` 경로라
- * create/update 와 동일하게 판매자 스토어 범위 토큰(SellerAuth)이 필요하다.
- */
-export function presignProductImage(
-  params: { filename: string; contentType: string },
-  auth: SellerAuth,
-): Promise<PresignedUpload> {
-  return apiFetch("/api/v1/products/images/presign", presignedUploadSchema, {
-    method: "POST",
-    body: params,
-    token: auth.token,
-    reauth: auth.reauth,
-  });
-}
-
-/**
- * presign 으로 받은 uploadUrl 에 파일을 직접 PUT(외부 S3 오리진, 토큰 없음).
- * apiFetch 미사용 — JSON 이 아니고 게이트웨이가 아닌 S3 를 향한다.
- * 헤더는 **Content-Type 하나만** — presign 서명 대상이 key+Content-Type 이라
- * 다른 헤더(Authorization 등)를 추가하면 서명 불일치로 403 이 된다.
- */
-export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
-  const res = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type },
-    body: file,
-  });
-  if (!res.ok) {
-    throw new Error(`S3 업로드에 실패했습니다 (${res.status})`);
-  }
-}
-
-/**
- * @deprecated presign 플로우(presignProductImage + uploadToS3)로 전환 중.
  * 상품 이미지 업로드(multipart, part 명 `file`) → `{ key, url }`.
  * 반환 key 를 상품 write 의 thumbnailKey·imageKeys 로 사용.
  * 업로드도 `POST /products/**` 경로라 회원 토큰이 아닌 **판매자 스토어 범위 토큰**이 필요
  * (게이트웨이가 scoped 토큰을 강제) → create/update 와 동일하게 SellerAuth 를 받는다.
- * BE multipart 엔드포인트 제거 시까지 과도기 존치(호출부 컷오버 후 삭제).
  */
 export function uploadProductImage(file: File, auth: SellerAuth): Promise<ImageUpload> {
   const form = new FormData();

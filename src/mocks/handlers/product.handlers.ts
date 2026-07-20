@@ -4,9 +4,6 @@ import type { Product, ProductPage } from "@/features/product/model/product.sche
 import { categories } from "../data/categories";
 import { DEFAULT_SELLER_NAME, products, SELLER_ID } from "../data/products";
 
-// presign 목 대상 S3 staging 버킷 오리진(BE terraform 배선과 동일).
-const S3_STAGING_ORIGIN = "https://team02-letsgpt-images-staging.s3.ap-northeast-2.amazonaws.com";
-
 type ProductWriteBody = {
   name: string;
   description?: string;
@@ -74,21 +71,6 @@ export const productHandlers = [
   http.post("*/api/v1/products/images", () => {
     const key = `mock-${crypto.randomUUID()}.jpg`;
     return HttpResponse.json({ key, url: `/api/v1/products/images/${key}` });
-  }),
-
-  // 이미지 presign 발급(BE: S3 staging PUT 서명 URL). 목은 filename 확장자를 살려 staging 키 발급.
-  http.post("*/api/v1/products/images/presign", async ({ request }) => {
-    const body = (await request.json()) as { filename?: string; contentType?: string };
-    const ext = body.filename?.split(".").pop() || "bin";
-    const stagingKey = `staging/${crypto.randomUUID()}.${ext}`;
-    const uploadUrl = `${S3_STAGING_ORIGIN}/${stagingKey}?X-Amz-Signature=mock`;
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    return HttpResponse.json({ stagingKey, uploadUrl, expiresAt });
-  }),
-
-  // S3 staging 직행 PUT 목(외부 오리진 절대 URL) — 실제 업로드는 200 + ETag 헤더로 응답.
-  http.put(`${S3_STAGING_ORIGIN}/*`, () => {
-    return new HttpResponse(null, { status: 200, headers: { ETag: '"mock-etag"' } });
   }),
 
   // 상품 이미지 조회 — 목은 키 기반 picsum 으로 리다이렉트해 실제 이미지를 보여준다.
