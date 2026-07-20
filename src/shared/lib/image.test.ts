@@ -9,6 +9,12 @@ describe("resolveImageSrc", () => {
     );
   });
 
+  it("presigned GET 풀 URL(쿼리 서명 포함)은 그대로 패스스루한다", () => {
+    const presigned =
+      "https://team02-letsgpt-images.s3.ap-northeast-2.amazonaws.com/images/uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc";
+    expect(resolveImageSrc(presigned)).toBe(presigned);
+  });
+
   it("BE 객체 키는 이미지 조회 URL 로 변환한다", () => {
     const expected = new URL(
       "/api/v1/products/images/abc.jpg",
