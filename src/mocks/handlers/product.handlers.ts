@@ -4,6 +4,17 @@ import type { Product, ProductPage } from "@/features/product/model/product.sche
 import { categories } from "../data/categories";
 import { DEFAULT_SELLER_NAME, products, SELLER_ID } from "../data/products";
 
+// presign 목 대상 S3 버킷 오리진(BE terraform 배선과 동일 — 이미지는 단일 버킷의 prefix로 분리).
+const S3_ORIGIN = "https://team02-letsgpt-bucket.s3.ap-northeast-2.amazonaws.com";
+// BE 는 상대 key(staging/{uuid})만 돌려주고 업로드 URL 에만 스토리지 prefix 를 붙인다 — 목도 동일하게 둔다.
+const S3_STAGING_PREFIX = "images/staging/";
+// 허용 MIME → 저장 키 확장자(BE 매핑과 동일 — 파일명이 아니라 타입이 확장자를 정한다).
+const CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
 type ProductWriteBody = {
   name: string;
   description?: string;
@@ -67,10 +78,20 @@ export const productHandlers = [
     return HttpResponse.json(paginate(filtered, body.page, body.size));
   }),
 
-  // 상품 이미지 업로드(BE: 로컬 파일 저장 → { key, url }). 목은 키만 발급.
-  http.post("*/api/v1/products/images", () => {
-    const key = `mock-${crypto.randomUUID()}.jpg`;
-    return HttpResponse.json({ key, url: `/api/v1/products/images/${key}` });
+  // 이미지 presign 발급(BE: S3 staging PUT 서명 URL). 목도 BE 처럼 contentType 으로 확장자를 정한다.
+  http.post("*/api/v1/products/images/presign", async ({ request }) => {
+    const body = (await request.json()) as { contentType?: string };
+    const ext = CONTENT_TYPE_EXTENSIONS[body.contentType ?? ""] ?? "bin";
+    const objectName = `${crypto.randomUUID()}.${ext}`;
+    const stagingKey = `staging/${objectName}`;
+    const uploadUrl = `${S3_ORIGIN}/${S3_STAGING_PREFIX}${objectName}?X-Amz-Signature=mock`;
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    return HttpResponse.json({ stagingKey, uploadUrl, expiresAt });
+  }),
+
+  // S3 staging 직행 PUT 목(외부 오리진 절대 URL) — 실제 업로드는 200 + ETag 헤더로 응답.
+  http.put(`${S3_ORIGIN}/*`, () => {
+    return new HttpResponse(null, { status: 200, headers: { ETag: '"mock-etag"' } });
   }),
 
   // 상품 이미지 조회 — 목은 키 기반 picsum 으로 리다이렉트해 실제 이미지를 보여준다.
