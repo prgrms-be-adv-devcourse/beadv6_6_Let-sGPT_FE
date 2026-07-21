@@ -1,8 +1,9 @@
 import { ImagePlus, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { resolveSellerAuth } from "@/features/auth/api/auth.api";
-import { uploadProductImage } from "@/features/product/api/products.api";
+import { presignProductImage, uploadToS3 } from "@/features/product/api/products.api";
+import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_BYTES } from "@/features/product/model/product.schema";
 import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
 
@@ -15,10 +16,25 @@ type Props = {
   onThumbnailChange: (key: string) => void;
 };
 
+type ImagePreview = {
+  key: string;
+  previewSrc: string;
+};
+
+function validateImages(files: readonly File[]): string | null {
+  if (files.some((file) => !IMAGE_ALLOWED_TYPES.some((type) => type === file.type))) {
+    return "JPEG, PNG, WebP 형식의 이미지만 업로드할 수 있습니다.";
+  }
+  if (files.some((file) => file.size > IMAGE_MAX_BYTES)) {
+    return `이미지는 파일당 ${IMAGE_MAX_BYTES / 1024 / 1024}MB 이하만 업로드할 수 있습니다.`;
+  }
+  return null;
+}
+
 /**
- * 상품 이미지 관리 — 파일을 업로드(BE 이미지 저장)하고 대표(썸네일)를 선택.
- * 업로드 → `{ key }` 수신 → key 를 images/thumbnail 로 보관(상품 write 시 thumbnailKey·imageKeys 로 전송).
- * key 는 ImagePlaceholder(resolveImageSrc)가 이미지 조회 URL로 변환해 렌더한다.
+ * 상품 이미지 관리 — presign 발급 후 staging 에 직접 업로드하고 대표(썸네일)를 선택.
+ * 부모에는 staging key 만 전달하고, 신규 이미지는 승격 전까지 blob URL 로 미리보기한다.
+ * 기존 key 는 ImagePlaceholder(resolveImageSrc)가 기존 조회 URL로 변환해 렌더한다.
  */
 export function ProductImageField({
   sellerInfoId,
@@ -30,41 +46,109 @@ export function ProductImageField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
+  const objectUrlsRef = useRef(new Set<string>());
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    const objectUrls = objectUrlsRef.current;
+    return () => {
+      mountedRef.current = false;
+      for (const objectUrl of objectUrls) {
+        URL.revokeObjectURL(objectUrl);
+      }
+      objectUrls.clear();
+    };
+  }, []);
+
+  function revokePreview(previewSrc: string) {
+    if (objectUrlsRef.current.delete(previewSrc)) {
+      URL.revokeObjectURL(previewSrc);
+    }
+  }
 
   async function handleFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) {
       return;
     }
-    setUploading(true);
+    const files = Array.from(fileList);
     setError(null);
+    const validationError = validateImages(files);
+    if (validationError) {
+      setError(validationError);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+      return;
+    }
+
+    setUploading(true);
+    const createdPreviews: ImagePreview[] = [];
     try {
       // 한 번 확보한 판매자 토큰을 묶음 업로드에 공유(만료 시 각 요청의 reauth 가 재발급·재시도).
       const auth = await resolveSellerAuth(sellerInfoId);
       const uploaded = await Promise.all(
-        Array.from(fileList).map((file) => uploadProductImage(file, auth)),
+        files.map(async (file) => {
+          const { stagingKey, uploadUrl } = await presignProductImage(
+            { contentType: file.type },
+            auth,
+          );
+          await uploadToS3(uploadUrl, file);
+          return { key: stagingKey, file };
+        }),
       );
+
+      if (!mountedRef.current) {
+        return;
+      }
+
+      for (const { key, file } of uploaded) {
+        const previewSrc = URL.createObjectURL(file);
+        objectUrlsRef.current.add(previewSrc);
+        createdPreviews.push({ key, previewSrc });
+      }
+
       const next = [...images];
-      for (const { key } of uploaded) {
+      const nextPreviews: ImagePreview[] = [];
+      for (const preview of createdPreviews) {
+        const { key } = preview;
         if (!next.includes(key)) {
           next.push(key);
+          nextPreviews.push(preview);
+        } else {
+          revokePreview(preview.previewSrc);
         }
       }
+      setImagePreviews((current) => [...current, ...nextPreviews]);
       onImagesChange(next);
       const first = next[0];
       if (!thumbnail && first) {
         onThumbnailChange(first);
       }
     } catch {
-      setError("이미지 업로드에 실패했습니다. 다시 시도해 주세요.");
+      for (const { previewSrc } of createdPreviews) {
+        revokePreview(previewSrc);
+      }
+      if (mountedRef.current) {
+        setError("이미지 업로드에 실패했습니다. 다시 시도해 주세요.");
+      }
     } finally {
-      setUploading(false);
-      if (inputRef.current) {
-        inputRef.current.value = "";
+      if (mountedRef.current) {
+        setUploading(false);
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
       }
     }
   }
 
   function removeImage(key: string) {
+    const preview = imagePreviews.find((item) => item.key === key);
+    if (preview) {
+      revokePreview(preview.previewSrc);
+      setImagePreviews((current) => current.filter((item) => item.key !== key));
+    }
     const next = images.filter((item) => item !== key);
     onImagesChange(next);
     if (thumbnail === key) {
@@ -82,7 +166,7 @@ export function ProductImageField({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={IMAGE_ALLOWED_TYPES.join(",")}
         multiple
         className="hidden"
         onChange={(event) => {
@@ -94,6 +178,7 @@ export function ProductImageField({
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {images.map((key) => {
             const isThumb = key === thumbnail;
+            const previewSrc = imagePreviews.find((item) => item.key === key)?.previewSrc;
             return (
               <div
                 key={key}
@@ -102,7 +187,7 @@ export function ProductImageField({
                   isThumb ? "border-foreground ring-1 ring-foreground" : "border-border",
                 )}
               >
-                <ImagePlaceholder name="상품 이미지" src={key} />
+                <ImagePlaceholder name="상품 이미지" src={previewSrc ?? key} />
                 {isThumb ? (
                   <span className="absolute top-1.5 left-1.5 rounded-full bg-background/85 px-2 py-0.5 font-medium text-[0.65rem] backdrop-blur">
                     대표
@@ -159,7 +244,11 @@ export function ProductImageField({
         </button>
       )}
 
-      {error ? <p className="text-destructive text-xs">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-destructive text-xs">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

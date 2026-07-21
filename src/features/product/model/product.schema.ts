@@ -25,10 +25,6 @@ export type Product = z.infer<typeof productSchema>;
 export const productPageSchema = pageResponseSchema(productSchema);
 export type ProductPage = z.infer<typeof productPageSchema>;
 
-/** 이미지 업로드 응답(`POST /api/v1/products/images`) — 반환 key 를 thumbnailKey·imageKeys 로 사용. */
-export const imageUploadSchema = z.object({ key: z.string(), url: z.string() });
-export type ImageUpload = z.infer<typeof imageUploadSchema>;
-
 /**
  * presign 발급 응답(`POST /api/v1/products/images/presign`) — S3 staging 직행 PUT 용.
  * stagingKey: promote 전 staging 객체 키(상품 write body 로 그대로 전송) /
