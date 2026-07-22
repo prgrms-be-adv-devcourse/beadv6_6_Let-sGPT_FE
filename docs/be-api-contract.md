@@ -123,8 +123,26 @@
 - `SettlementBatchResultSummary{ batchId, settlementMonth, batchType: LOAD_PAYMENT|LOAD_REFUND|SETTLEMENT_RUN|SETTLEMENT_RETRY, status: READY|RUNNING|COMPLETED|FAILED, startedAt, endedAt, totalOrderCount, totalSellerCount, totalSettlementAmount, failReason, createdAt }`
 - 정산식: `netSettlement = paidAmount - feeAmount - refundAmount`. 월 1일 03:00 배치(전월).
 
+## ai (관리자 AI 어시스턴트)
+| M·P | 경로 | 요청 | 응답 | 인증 |
+|---|---|---|---|---|
+| GET | `/api/v1/ai/chats/capabilities` | - | `ChatCapabilitiesResponse` | ADMIN |
+| POST | `/api/v1/ai/chats` | `{message}` + `Accept: text/event-stream` | SSE | ADMIN |
+
+- `ChatCapabilitiesResponse{ prototype, maxMessageLength, notice, capabilities:Capability[] }`
+- `Capability{ type, label, description, availability:ACTIVE|PLANNED|UNAVAILABLE, sampleQuestions:string[] }`
+- 초기 POST 요청은 저장하지 않는 단일 질문이며, 앞선 질문의 문맥을 다음 요청에 자동으로 전달하지 않는다.
+- named SSE 이벤트는 `status | message | delta | done | error`다. heartbeat comment(`: ...`)는 데이터 이벤트가 아니므로 무시한다.
+  - `status`: `{ stage:ROUTING|PLANNING|QUERYING|RETRIEVING|CALLING_TOOL|GENERATING, route?:ChatRoute|null }`
+  - `message`: `{ text }` — 스트리밍 없이 완성된 안내
+  - `delta`: `{ text }` — 생성 답변 조각
+  - `done`: `{ route }` — 정상 완료의 유일한 종료 이벤트
+  - `error`: `{ code, message, retryable, partial }`
+- 생성은 애플리케이션의 170초 deadline을 넘으면 `CHAT_TIMEOUT` 오류로 끝난다. 앞서 `delta`를 받았다면 `partial:true`이며 `done`은 오지 않는다.
+- POST와 Authorization 헤더가 필요하므로 네이티브 `EventSource` 대신 fetch `ReadableStream`과 `AbortController`를 사용한다.
+
 ## FE 통합 메모
-- 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key + Zod 경계 검증).
+- JSON 인증 호출은 `shared/api/http.ts`의 `apiFetch`, SSE는 같은 인증·401 복구 경계를 적용하는 `apiFetchResponse`를 사용한다.
 - BE 엔드포인트 현황(2026-06-29 BE 코드 대조 완료): 드롭 조회(목록·상세·`/me`)·카테고리 조회·판매자 본인 상품/드롭 목록(`products/me`·`drops/me`)·이미지 업로드·판매자 토큰(`/seller/token`)·지갑 잔액 **전부 BE 구현 확인**. 과거 "미구현" 표기는 모두 낡았던 것(원인은 대개 FE 경로 오타 또는 게이트웨이 라우트 오인).
 - 유일한 잔여 갭은 **판매자명(sellerName)** — 엔드포인트·DTO 필드는 있으나 BE 가 store명 이벤트 전파 전엔 `null` 가능(로컬은 시드로 채움). FE 는 `sellerName` 을 nullish 로 이미 처리하므로 추가 작업 없음. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
 - **상품 이미지 업로드/조회는 BE 구현 완료**(`POST /products/images` multipart→`{key,url}`, `GET /products/images/{key}`). 업로드는 `/products/**` 라 **판매자 스토어 범위 토큰** 필요(회원 토큰이면 게이트웨이 401/403) → `uploadProductImage`가 `SellerAuth` 부착.

@@ -31,7 +31,7 @@
 
 > 사람은 스택·와이어프레임을 정의하고, 구현은 에이전트가 **검증 루프(타입 · 테스트 · 시각)** 를 돌며 수행한다.
 >
-> **현재 상태** — 와이어프레임 전 화면(01–16) 구현 + 디자인 확정 완료. 실 BE 연동 전까지 **MSW**로 전 플로우가 동작한다.
+> **현재 상태** — 와이어프레임 전 화면(01–16)과 관리자 AI 어시스턴트 프로토타입(17) 구현. 실 BE 연동 전까지 **MSW**로 전 플로우가 동작한다.
 
 <br/>
 
@@ -80,7 +80,7 @@ Zustand · Zod · Biome · Vitest · Playwright · MSW · Storybook
 
 ## 🖥 구현 화면
 
-와이어프레임 전 화면(01–16)이 구현·디자인 확정되었다. 와이어프레임은 "무엇을 담을지"의 참고일 뿐, **실제 배치·동작·표기는 코드가 기준**이다.
+와이어프레임 전 화면(01–16)과 관리자 AI 어시스턴트 프로토타입(17)이 구현되었다. 와이어프레임은 "무엇을 담을지"의 참고일 뿐, **실제 배치·동작·표기는 코드가 기준**이다.
 
 <details>
 <summary><b>고객(구매자) 화면 · 01–10</b></summary>
@@ -101,7 +101,7 @@ Zustand · Zod · Biome · Vitest · Playwright · MSW · Storybook
 </details>
 
 <details>
-<summary><b>판매자/관리자 화면 · 11–16</b></summary>
+<summary><b>판매자/관리자 화면 · 11–17</b></summary>
 
 | # | 화면 | 라우트 | 도메인 |
 |---|---|---|---|
@@ -111,6 +111,7 @@ Zustand · Zod · Biome · Vitest · Playwright · MSW · Storybook
 | 14 | 상품 등록 | `/seller/products/new` | product |
 | 15 | 카테고리 관리 | `/admin/categories` | category |
 | 16 | 정산 목록 | `/seller/settlements` · `/admin/settlements` | settlement |
+| 17 | 관리자 AI 어시스턴트 | `/admin/chatbot` | ai(chat) |
 
 </details>
 
@@ -125,7 +126,7 @@ src/
   app/        앱 셸 — providers · queryClient · styles
   routes/     TanStack 파일 기반 라우트(얇은 진입점) → routeTree.gen.ts (자동생성, 수정 금지)
   features/   기능 단위 코로케이션 — <도메인>/{ model · api · queries · ui }
-              auth · product · drop · category · order · payment · seller · settlement
+              auth · product · drop · category · order · payment · seller · settlement · chat
   shared/     공통 — ui(shadcn + 공용 컨트롤) · lib · api(apiFetch · openapi-fetch client/schema)
   mocks/      MSW 핸들러(browser/server) + 목 데이터
   test/       Vitest 셋업
@@ -138,7 +139,7 @@ e2e/          Playwright 스펙
 
 ## 🔌 API 계약
 
-런타임 경계는 [`shared/api/http.ts`](./src/shared/api/http.ts)의 **`apiFetch`** — Authorization · Idempotency-Key 자동 주입 + **Zod 검증**을 한곳에서 처리한다. BE 계약의 단일 기준 문서는 [`docs/be-api-contract.md`](./docs/be-api-contract.md).
+런타임 경계는 [`shared/api/http.ts`](./src/shared/api/http.ts)의 **`apiFetch`**와 스트리밍용 **`apiFetchResponse`** — Authorization · Idempotency-Key 자동 주입과 JSON **Zod 검증**을 한곳에서 처리한다. BE 계약의 단일 기준 문서는 [`docs/be-api-contract.md`](./docs/be-api-contract.md).
 
 게이트웨이 통합 스펙 `GET $VITE_API_BASE_URL/v3/api-docs/all`에서 타입을 코드젠한다.
 

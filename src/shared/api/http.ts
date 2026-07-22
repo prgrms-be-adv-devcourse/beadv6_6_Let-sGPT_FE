@@ -31,11 +31,15 @@ export class ApiError extends Error {
   }
 }
 
-type ApiFetchOptions = {
+export type ApiFetchOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   idempotencyKey?: string;
+  /** 응답 미디어 타입 지정(SSE 등). */
+  accept?: string;
+  /** 호출 취소 신호. 스트리밍 요청의 연결 해제에도 사용한다. */
+  signal?: AbortSignal;
   /** false 면 Authorization 미부착(공개 엔드포인트). */
   auth?: boolean;
   /** 토큰을 명시적으로 override(로그인 직후 /me 처럼 store 반영 전 호출용). */
@@ -75,6 +79,20 @@ export async function apiFetch<T>(
   schema: ZodType<T>,
   options: ApiFetchOptions = {},
 ): Promise<T> {
+  const response = await apiFetchResponse(path, options);
+
+  const text = await response.text();
+  return schema.parse(text ? JSON.parse(text) : undefined);
+}
+
+/**
+ * 인증·재발급·공통 오류 처리를 적용하되 Response body 소비는 호출자에게 맡긴다.
+ * JSON이 아닌 스트리밍 응답처럼 `apiFetch`가 즉시 파싱할 수 없는 경계에서 사용한다.
+ */
+export async function apiFetchResponse(
+  path: string,
+  options: ApiFetchOptions = {},
+): Promise<Response> {
   const url = new URL(path, import.meta.env.VITE_API_BASE_URL);
   if (options.query) {
     for (const [key, value] of Object.entries(options.query)) {
@@ -93,12 +111,19 @@ export async function apiFetch<T>(
   if (options.idempotencyKey) {
     headers["Idempotency-Key"] = options.idempotencyKey;
   }
+  if (options.accept) {
+    headers.Accept = options.accept;
+  }
   const token = options.token ?? (options.auth === false ? null : accessTokenProvider());
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const init: RequestInit = { method: options.method ?? "GET", headers };
+  const init: RequestInit = {
+    method: options.method ?? "GET",
+    headers,
+    ...(options.signal ? { signal: options.signal } : {}),
+  };
   if (options.body !== undefined) {
     init.body = isFormData ? (options.body as FormData) : JSON.stringify(options.body);
   }
@@ -131,7 +156,5 @@ export async function apiFetch<T>(
   if (!response.ok) {
     throw await toApiError(response);
   }
-
-  const text = await response.text();
-  return schema.parse(text ? JSON.parse(text) : undefined);
+  return response;
 }

@@ -17,6 +17,11 @@ const CARDS = [
     title: "정산 정보 관리",
     description: "판매자·주문 단위 정산 내역을 조회하고 실패를 재시도합니다.",
   },
+  {
+    to: "/admin/chatbot" as const,
+    title: "AI 어시스턴트",
+    description: "일반 질문을 시작으로 관리자 업무에 필요한 답변을 확장합니다.",
+  },
 ];
 
 function AdminDashboardPage() {
