@@ -43,14 +43,15 @@
 | PATCH | `/api/v1/products/{id}` | `ProductUpdateRequest` | 204 | **판매자토큰** |
 | DELETE | `/api/v1/products/{id}` | - | 204(오픈 드롭 있으면 `DROP_OPEN_EXISTS`) | **판매자토큰** |
 | GET | `/api/v1/products/me?categoryId&keyword&page&size&sort` | - | `PageResponse<ProductResponse>`(본인 스토어) | **판매자토큰**(⚠️ GET이지만 BE가 X-Seller-Id로 스토어 식별 → 회원 토큰이면 401) |
-| POST | `/api/v1/products/images` | 멀티파트 `file` | `{ key, url }` | **인증** |
-| GET | `/api/v1/products/images/{key}` | - | 이미지 바이트(스트리밍) | - |
+| POST | `/api/v1/products/images/presign` | `{ contentType }` | `{ stagingKey, uploadUrl, expiresAt }` | **판매자토큰** |
+| PUT | `{uploadUrl}` (S3/MinIO 직전송, 게이트웨이 미경유) | 파일 바이너리 + presign 때와 동일한 `Content-Type` | 200 | - (URL 서명) |
+| GET | `/api/v1/products/images/{key}` | - | 302 → presigned GET URL 리다이렉트 | - |
 | POST | `/api/v1/searchs/search` | `{query, categoryName, startPrice, endPrice, page, size, sort}` | `PageResponse<SearchProductResponse>` | - |
 
 - `ProductResponse{ id, sellerId(=sellerInfoId), sellerName:null, name, description, categoryId:null, categoryName:null, price:null(number), thumbnailKey:null, imageKeys:string[], createdAt }`
 - `ProductCreateRequest`/`ProductUpdateRequest`: `name, description?, categoryId?, price?, thumbnailKey?, imageKeys?`.
 - **판매자명 ✅**: `sellerName` 응답 포함(미연동 시 null) — 카드·상세 벤더 표기.
-- **이미지 ✅**: 대표 `thumbnailKey` + 갤러리 `imageKeys`. 업로드 `POST /products/images`(멀티파트 `file`→`{key,url}`), 조회 `GET /products/images/{key}`. FE 는 키를 `{base}/api/v1/products/images/{key}` 로 렌더(`resolveImageSrc`). 세미=로컬 저장 · 파이널=S3.
+- **이미지 ✅ (2026-07-21 presign 전환)**: 업로드는 3단계 — ① `POST /products/images/presign`(`{contentType}`)으로 `stagingKey`+`uploadUrl` 발급 ② 브라우저가 `uploadUrl`로 직접 PUT(**presign 요청과 동일한 `Content-Type` 필수** — 다르면 서명 불일치 403) ③ 상품 등록/수정 바디의 `thumbnailKey`/`imageKeys`에 `stagingKey` 전달 → BE가 저장 시점에 final key로 승격해 응답. 조회 `GET /products/images/{key}`는 302 리다이렉트(일반 `<img>` 그대로 호환). FE 는 키를 `{base}/api/v1/products/images/{key}` 로 렌더(`resolveImageSrc`). 저장소: 로컬=MinIO(`localhost:9000`, **`docker compose up -d minio minio-init` 필요**) · 배포=S3.
 - **본인 상품 목록 ✅**: `GET /products/me`(활성 스토어 기준).
 - **Elasticsearch 상품 검색 ✅**: `POST /searchs/search`. `query`는 자연어 벡터 검색, `categoryName`은 카테고리명 필터, `startPrice`/`endPrice`는 가격 범위다. `sort` 허용값은 `createdAt,desc`·`price,asc`·`price,desc`.
 
@@ -129,5 +130,5 @@
 - 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key + Zod 경계 검증).
 - BE 엔드포인트 현황(2026-06-29 BE 코드 대조 완료): 드롭 조회(목록·상세·`/me`)·카테고리 조회·판매자 본인 상품/드롭 목록(`products/me`·`drops/me`)·이미지 업로드·판매자 토큰(`/seller/token`)·지갑 잔액 **전부 BE 구현 확인**. 과거 "미구현" 표기는 모두 낡았던 것(원인은 대개 FE 경로 오타 또는 게이트웨이 라우트 오인).
 - 유일한 잔여 갭은 **판매자명(sellerName)** — 엔드포인트·DTO 필드는 있으나 BE 가 store명 이벤트 전파 전엔 `null` 가능(로컬은 시드로 채움). FE 는 `sellerName` 을 nullish 로 이미 처리하므로 추가 작업 없음. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
-- **상품 이미지 업로드/조회는 BE 구현 완료**(`POST /products/images` multipart→`{key,url}`, `GET /products/images/{key}`). 업로드는 `/products/**` 라 **판매자 스토어 범위 토큰** 필요(회원 토큰이면 게이트웨이 401/403) → `uploadProductImage`가 `SellerAuth` 부착.
+- **상품 이미지 업로드/조회는 presign 방식**(2026-07-21 컷오버, 구 multipart 제거). presign 발급은 `/products/**` 라 **판매자 스토어 범위 토큰** 필요(회원 토큰이면 게이트웨이 401/403) → `presignProductImage`가 `SellerAuth` 부착, S3 직전송 PUT은 `uploadToS3`(Authorization 미부착 — 붙이면 서명 불일치). 조회 GET은 공개(302 리다이렉트).
 - PG 결제는 실제 토스 SDK 대신 FE 에선 **모의 결제(MSW)** 로 confirm 흐름만 재현.
