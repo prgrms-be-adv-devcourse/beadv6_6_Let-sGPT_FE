@@ -1,4 +1,5 @@
 import { categoryHandlers } from "./category.handlers";
+import { chatHandlers } from "./chat.handlers";
 import { dropHandlers } from "./drop.handlers";
 import { memberHandlers } from "./member.handlers";
 import { orderHandlers } from "./order.handlers";
@@ -9,6 +10,7 @@ import { sellerHandlers } from "./seller.handlers";
 import { settlementHandlers } from "./settlement.handlers";
 
 export const handlers = [
+  ...chatHandlers,
   ...productHandlers,
   ...dropHandlers,
   ...categoryHandlers,

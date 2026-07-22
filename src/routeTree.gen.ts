@@ -26,6 +26,7 @@ import { Route as ProductsIdRouteImport } from "./routes/products/$id";
 import { Route as DropsIdRouteImport } from "./routes/drops/$id";
 import { Route as BrandsNameRouteImport } from "./routes/brands/$name";
 import { Route as AdminSettlementsRouteImport } from "./routes/admin/settlements";
+import { Route as AdminChatbotRouteImport } from "./routes/admin/chatbot";
 import { Route as AdminCategoriesRouteImport } from "./routes/admin/categories";
 import { Route as AuthedMypageRouteImport } from "./routes/_authed/mypage";
 import { Route as SellerProductsIndexRouteImport } from "./routes/seller/products/index";
@@ -122,6 +123,11 @@ const AdminSettlementsRoute = AdminSettlementsRouteImport.update({
   path: "/settlements",
   getParentRoute: () => AdminRoute,
 } as any);
+const AdminChatbotRoute = AdminChatbotRouteImport.update({
+  id: "/chatbot",
+  path: "/chatbot",
+  getParentRoute: () => AdminRoute,
+} as any);
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: "/categories",
   path: "/categories",
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   "/signup": typeof SignupRoute;
   "/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/chatbot": typeof AdminChatbotRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
   "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   "/signup": typeof SignupRoute;
   "/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/chatbot": typeof AdminChatbotRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
   "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   "/signup": typeof SignupRoute;
   "/_authed/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
+  "/admin/chatbot": typeof AdminChatbotRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
   "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | "/signup"
     | "/mypage"
     | "/admin/categories"
+    | "/admin/chatbot"
     | "/admin/settlements"
     | "/brands/$name"
     | "/drops/$id"
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | "/signup"
     | "/mypage"
     | "/admin/categories"
+    | "/admin/chatbot"
     | "/admin/settlements"
     | "/brands/$name"
     | "/drops/$id"
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | "/signup"
     | "/_authed/mypage"
     | "/admin/categories"
+    | "/admin/chatbot"
     | "/admin/settlements"
     | "/brands/$name"
     | "/drops/$id"
@@ -498,6 +510,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminSettlementsRouteImport;
       parentRoute: typeof AdminRoute;
     };
+    "/admin/chatbot": {
+      id: "/admin/chatbot";
+      path: "/chatbot";
+      fullPath: "/admin/chatbot";
+      preLoaderRoute: typeof AdminChatbotRouteImport;
+      parentRoute: typeof AdminRoute;
+    };
     "/admin/categories": {
       id: "/admin/categories";
       path: "/categories";
@@ -599,12 +618,14 @@ const AuthedRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute;
+  AdminChatbotRoute: typeof AdminChatbotRoute;
   AdminSettlementsRoute: typeof AdminSettlementsRoute;
   AdminIndexRoute: typeof AdminIndexRoute;
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminChatbotRoute: AdminChatbotRoute,
   AdminSettlementsRoute: AdminSettlementsRoute,
   AdminIndexRoute: AdminIndexRoute,
 };
