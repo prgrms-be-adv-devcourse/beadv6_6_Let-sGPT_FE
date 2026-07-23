@@ -29,6 +29,7 @@ export function useUpdateMember() {
 
 /** 로그인 → 토큰 발급 후 /me 로 회원정보를 받아 세션에 저장. */
 export function useLogin() {
+  const queryClient = useQueryClient();
   const setSession = useAuthStore((state) => state.setSession);
   return useMutation({
     mutationFn: async (values: LoginFormValues) => {
@@ -36,7 +37,11 @@ export function useLogin() {
       const member = await meRequest(token.accessToken);
       return { token, member };
     },
-    onSuccess: ({ token, member }) => setSession(token, member),
+    onSuccess: ({ token, member }) => {
+      setSession(token, member);
+      // 세션 경계: 이전(익명/타 계정) 추천 캐시 제거 — authStore.clear 만으론 RQ 캐시가 안 비워짐.
+      queryClient.removeQueries({ queryKey: ["recommendations"] });
+    },
   });
 }
 

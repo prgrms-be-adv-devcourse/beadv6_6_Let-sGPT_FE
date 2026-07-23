@@ -19,10 +19,12 @@ import { Route as IndexRouteImport } from "./routes/index";
 import { Route as Products_esIndexRouteImport } from "./routes/products_es/index";
 import { Route as ProductsIndexRouteImport } from "./routes/products/index";
 import { Route as DropsIndexRouteImport } from "./routes/drops/index";
+import { Route as BrandsIndexRouteImport } from "./routes/brands/index";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
 import { Route as SellerSettlementsRouteImport } from "./routes/seller/settlements";
 import { Route as ProductsIdRouteImport } from "./routes/products/$id";
 import { Route as DropsIdRouteImport } from "./routes/drops/$id";
+import { Route as BrandsNameRouteImport } from "./routes/brands/$name";
 import { Route as AdminSettlementsRouteImport } from "./routes/admin/settlements";
 import { Route as AdminCategoriesRouteImport } from "./routes/admin/categories";
 import { Route as AuthedMypageRouteImport } from "./routes/_authed/mypage";
@@ -85,6 +87,11 @@ const DropsIndexRoute = DropsIndexRouteImport.update({
   path: "/drops/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const BrandsIndexRoute = BrandsIndexRouteImport.update({
+  id: "/brands/",
+  path: "/brands/",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: "/",
   path: "/",
@@ -103,6 +110,11 @@ const ProductsIdRoute = ProductsIdRouteImport.update({
 const DropsIdRoute = DropsIdRouteImport.update({
   id: "/drops/$id",
   path: "/drops/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const BrandsNameRoute = BrandsNameRouteImport.update({
+  id: "/brands/$name",
+  path: "/brands/$name",
   getParentRoute: () => rootRouteImport,
 } as any);
 const AdminSettlementsRoute = AdminSettlementsRouteImport.update({
@@ -178,10 +190,12 @@ export interface FileRoutesByFullPath {
   "/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
+  "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/seller/settlements": typeof SellerSettlementsRoute;
   "/admin/": typeof AdminIndexRoute;
+  "/brands/": typeof BrandsIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
   "/products_es/": typeof Products_esIndexRoute;
@@ -204,10 +218,12 @@ export interface FileRoutesByTo {
   "/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
+  "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/seller/settlements": typeof SellerSettlementsRoute;
   "/admin": typeof AdminIndexRoute;
+  "/brands": typeof BrandsIndexRoute;
   "/drops": typeof DropsIndexRoute;
   "/products": typeof ProductsIndexRoute;
   "/products_es": typeof Products_esIndexRoute;
@@ -233,10 +249,12 @@ export interface FileRoutesById {
   "/_authed/mypage": typeof AuthedMypageRoute;
   "/admin/categories": typeof AdminCategoriesRoute;
   "/admin/settlements": typeof AdminSettlementsRoute;
+  "/brands/$name": typeof BrandsNameRoute;
   "/drops/$id": typeof DropsIdRoute;
   "/products/$id": typeof ProductsIdRoute;
   "/seller/settlements": typeof SellerSettlementsRoute;
   "/admin/": typeof AdminIndexRoute;
+  "/brands/": typeof BrandsIndexRoute;
   "/drops/": typeof DropsIndexRoute;
   "/products/": typeof ProductsIndexRoute;
   "/products_es/": typeof Products_esIndexRoute;
@@ -262,10 +280,12 @@ export interface FileRouteTypes {
     | "/mypage"
     | "/admin/categories"
     | "/admin/settlements"
+    | "/brands/$name"
     | "/drops/$id"
     | "/products/$id"
     | "/seller/settlements"
     | "/admin/"
+    | "/brands/"
     | "/drops/"
     | "/products/"
     | "/products_es/"
@@ -288,10 +308,12 @@ export interface FileRouteTypes {
     | "/mypage"
     | "/admin/categories"
     | "/admin/settlements"
+    | "/brands/$name"
     | "/drops/$id"
     | "/products/$id"
     | "/seller/settlements"
     | "/admin"
+    | "/brands"
     | "/drops"
     | "/products"
     | "/products_es"
@@ -316,10 +338,12 @@ export interface FileRouteTypes {
     | "/_authed/mypage"
     | "/admin/categories"
     | "/admin/settlements"
+    | "/brands/$name"
     | "/drops/$id"
     | "/products/$id"
     | "/seller/settlements"
     | "/admin/"
+    | "/brands/"
     | "/drops/"
     | "/products/"
     | "/products_es/"
@@ -342,8 +366,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute;
   SellerRoute: typeof SellerRouteWithChildren;
   SignupRoute: typeof SignupRoute;
+  BrandsNameRoute: typeof BrandsNameRoute;
   DropsIdRoute: typeof DropsIdRoute;
   ProductsIdRoute: typeof ProductsIdRoute;
+  BrandsIndexRoute: typeof BrandsIndexRoute;
   DropsIndexRoute: typeof DropsIndexRoute;
   ProductsIndexRoute: typeof ProductsIndexRoute;
   Products_esIndexRoute: typeof Products_esIndexRoute;
@@ -423,6 +449,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DropsIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/brands/": {
+      id: "/brands/";
+      path: "/brands";
+      fullPath: "/brands/";
+      preLoaderRoute: typeof BrandsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/admin/": {
       id: "/admin/";
       path: "/";
@@ -449,6 +482,13 @@ declare module "@tanstack/react-router" {
       path: "/drops/$id";
       fullPath: "/drops/$id";
       preLoaderRoute: typeof DropsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/brands/$name": {
+      id: "/brands/$name";
+      path: "/brands/$name";
+      fullPath: "/brands/$name";
+      preLoaderRoute: typeof BrandsNameRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/admin/settlements": {
@@ -596,8 +636,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SellerRoute: SellerRouteWithChildren,
   SignupRoute: SignupRoute,
+  BrandsNameRoute: BrandsNameRoute,
   DropsIdRoute: DropsIdRoute,
   ProductsIdRoute: ProductsIdRoute,
+  BrandsIndexRoute: BrandsIndexRoute,
   DropsIndexRoute: DropsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
   Products_esIndexRoute: Products_esIndexRoute,

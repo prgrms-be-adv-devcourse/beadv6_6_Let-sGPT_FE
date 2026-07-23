@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { logoutRequest } from "@/features/auth/api/auth.api";
@@ -14,6 +15,7 @@ function AuthActions() {
   const member = useAuthStore((state) => state.member);
   const clear = useAuthStore((state) => state.clear);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // 보호 라우트(예: 마이페이지)에서 먼저 로그아웃하면 가드가 로그인 화면으로 밀어내므로,
   // 공개 홈으로 먼저 이동한 뒤 세션을 비운다 → 항상 메인페이지로 안착.
@@ -22,6 +24,8 @@ function AuthActions() {
     void logoutRequest().catch(() => undefined);
     await navigate({ to: "/" });
     clear();
+    // 세션 경계: 이전 계정 추천 캐시 제거(계정 전환 시 잔존 방지).
+    queryClient.removeQueries({ queryKey: ["recommendations"] });
   }
 
   if (member) {
@@ -85,6 +89,9 @@ export function SiteHeader() {
           </Link>
           <Link to="/products_es" className={navLinkClass}>
             Shop
+          </Link>
+          <Link to="/brands" className={navLinkClass}>
+            Brands
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-3 sm:gap-4">

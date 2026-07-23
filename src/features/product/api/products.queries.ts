@@ -53,6 +53,41 @@ export function useProduct(id: string) {
   return useQuery(productQueries.detail(id));
 }
 
+/**
+ * 브랜드(셀러) 상품 모아보기.
+ *
+ * 공개 `GET /api/v1/products` 에 sellerId 필터가 없어(계약 확인) **클라이언트 사이드**로 좁힌다.
+ * ⚠️ 한계: "받아온 페이지 범위"(size=BRAND_FETCH_SIZE)만 커버 — 전량 필터는 불가. 전량 로딩은
+ * 성능상 지양. BE 에 sellerId 필터가 생기면 이 한 곳의 queryFn 만 교체하면 된다(필터 지점 단일화).
+ */
+export const BRAND_FETCH_SIZE = 200;
+
+export function useProductsBySeller(sellerName: string) {
+  return useQuery({
+    ...productQueries.list({ size: BRAND_FETCH_SIZE }),
+    select: (page: ProductPage) =>
+      page.content.filter((product) => product.sellerName === sellerName),
+  });
+}
+
+/**
+ * 전 브랜드(셀러) 목록 — products 응답의 distinct sellerName 에서 파생(전용 셀러 API 없음).
+ * 브랜드 디렉토리(/brands) 용. useProductsBySeller 와 동일한 한계·교체 지점을 공유한다.
+ */
+export function useBrandNames() {
+  return useQuery({
+    ...productQueries.list({ size: BRAND_FETCH_SIZE }),
+    select: (page: ProductPage) =>
+      [
+        ...new Set(
+          page.content
+            .map((product) => product.sellerName)
+            .filter((name): name is string => Boolean(name)),
+        ),
+      ].sort((a, b) => a.localeCompare(b, "ko")),
+  });
+}
+
 // ── 판매자 콘솔 ───────────────────────────────────────────────────────────
 export const myProductQueries = {
   list: (sellerInfoId: string, params: { page?: number; size?: number } = {}) =>

@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { useCategories } from "@/features/category/api/categories.queries";
 import { useProductList } from "@/features/product/api/products.queries";
 import type { Product } from "@/features/product/model/product.schema";
+import { BrandLink } from "@/features/product/ui/BrandLink";
+import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import { formatKrw } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { ImagePlaceholder } from "@/shared/ui/ImagePlaceholder";
@@ -42,17 +44,19 @@ function ProductListPage() {
   const categories = useCategories();
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [keyword, setKeyword] = useState("");
+  const [brand, setBrand] = useState("");
   const [sort, setSort] = useState<SortValue>("latest");
 
   const filtered = useMemo(() => {
     const term = keyword.trim();
     const base = (products.data?.content ?? []).filter((product) => {
       if (categoryId && product.categoryId !== categoryId) return false;
+      if (brand && product.sellerName !== brand) return false;
       if (term && !product.name.includes(term)) return false;
       return true;
     });
     return sortProducts(base, sort);
-  }, [products.data, categoryId, keyword, sort]);
+  }, [products.data, categoryId, brand, keyword, sort]);
 
   const [cover, ...rest] = filtered;
 
@@ -60,6 +64,21 @@ function ProductListPage() {
     { value: "", label: "전체" },
     ...(categories.data ?? []).map((category) => ({ value: category.id, label: category.name })),
   ];
+
+  // 브랜드 필터(패싯) 옵션 — 상품 응답의 distinct sellerName 에서 파생(전용 API 없음).
+  const brandOptions = useMemo(() => {
+    const names = [
+      ...new Set(
+        (products.data?.content ?? [])
+          .map((product) => product.sellerName)
+          .filter((name): name is string => Boolean(name)),
+      ),
+    ].sort((a, b) => a.localeCompare(b, "ko"));
+    return [
+      { value: "", label: "전체 브랜드" },
+      ...names.map((name) => ({ value: name, label: name })),
+    ];
+  }, [products.data]);
 
   return (
     <div className="space-y-12">
@@ -91,6 +110,12 @@ function ProductListPage() {
               className="h-9 w-40 border-border border-b bg-transparent pr-2 pl-6 text-sm outline-none transition-colors focus-visible:border-foreground"
             />
           </div>
+          <MenuSelect
+            aria-label="브랜드"
+            options={brandOptions}
+            value={brand}
+            onChange={setBrand}
+          />
           <MenuSelect
             aria-label="정렬"
             options={SORTS}
@@ -136,12 +161,13 @@ function CoverProduct({ product }: { product: Product }) {
         <span className="absolute top-4 left-4 rounded-full bg-background/85 px-3 py-1 font-medium text-xs uppercase tracking-[0.18em] backdrop-blur">
           Featured
         </span>
+        <WishlistButton productId={product.id} className="absolute top-3 right-3 z-10" />
       </div>
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           {product.categoryName ? <Tag>{product.categoryName}</Tag> : null}
           {product.sellerName ? (
-            <span className="text-muted-foreground text-sm">{product.sellerName}</span>
+            <BrandLink sellerName={product.sellerName} className="text-muted-foreground text-sm" />
           ) : null}
         </div>
         <h2 className="font-serif text-4xl leading-tight tracking-tight">{product.name}</h2>
@@ -173,12 +199,14 @@ function GalleryTile({ product }: { product: Product }) {
             {product.categoryName}
           </Tag>
         ) : null}
+        <WishlistButton productId={product.id} className="absolute top-2 right-2 z-10" />
       </div>
       <div className="mt-3 space-y-1">
         {product.sellerName ? (
-          <p className="truncate text-[0.7rem] text-muted-foreground uppercase tracking-[0.1em]">
-            {product.sellerName}
-          </p>
+          <BrandLink
+            sellerName={product.sellerName}
+            className="block max-w-full truncate text-[0.7rem] text-muted-foreground uppercase tracking-[0.1em]"
+          />
         ) : null}
         <div className="flex items-baseline justify-between gap-3">
           <h3 className="truncate font-medium text-sm">{product.name}</h3>

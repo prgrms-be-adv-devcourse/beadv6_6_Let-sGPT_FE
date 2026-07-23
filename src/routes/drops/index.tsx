@@ -6,6 +6,7 @@ import { useDropList } from "@/features/drop/api/drops.queries";
 import type { DropCard, DropStatus } from "@/features/drop/model/drop.schema";
 import { Countdown } from "@/features/drop/ui/Countdown";
 import { DropStatusPill } from "@/features/drop/ui/DropStatusPill";
+import { BrandLink } from "@/features/product/ui/BrandLink";
 import { formatDateTime, formatKrw } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -157,7 +158,7 @@ function FeaturedDrop({ drop }: { drop: DropCard }) {
           <div className="flex flex-wrap items-center gap-2">
             {drop.categoryName ? <Tag>{drop.categoryName}</Tag> : null}
             {drop.sellerName ? (
-              <span className="text-muted-foreground text-sm">{drop.sellerName}</span>
+              <BrandLink sellerName={drop.sellerName} className="text-muted-foreground text-sm" />
             ) : null}
           </div>
           <h2 className="font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
@@ -213,7 +214,10 @@ function ReleaseRow({ drop, index }: { drop: DropCard; index: number }) {
           <div className="flex items-center gap-2">
             <Tag>{drop.categoryName ?? "기타"}</Tag>
             {drop.sellerName ? (
-              <span className="truncate text-muted-foreground text-xs">{drop.sellerName}</span>
+              <BrandLink
+                sellerName={drop.sellerName}
+                className="max-w-full truncate text-muted-foreground text-xs"
+              />
             ) : null}
           </div>
         </div>
