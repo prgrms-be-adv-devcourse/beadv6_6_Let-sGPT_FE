@@ -4,6 +4,7 @@ import { memberHandlers } from "./member.handlers";
 import { orderHandlers } from "./order.handlers";
 import { paymentHandlers } from "./payment.handlers";
 import { productHandlers } from "./product.handlers";
+import { queueHandlers } from "./queue.handlers";
 import { sellerHandlers } from "./seller.handlers";
 import { settlementHandlers } from "./settlement.handlers";
 
@@ -16,4 +17,5 @@ export const handlers = [
   ...orderHandlers,
   ...paymentHandlers,
   ...settlementHandlers,
+  ...queueHandlers,
 ];

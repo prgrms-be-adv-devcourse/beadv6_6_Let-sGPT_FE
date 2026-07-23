@@ -29,3 +29,5 @@ npm-debug.log*
 pnpm-debug.log*
 
 # NOTE: src/routeTree.gen.ts 는 자동생성이지만 타입체크 선행조건이라 의도적으로 커밋한다.
+
+.serena
