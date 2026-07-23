@@ -1,8 +1,12 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { Product } from "../model/product.schema";
 import { ProductCard } from "./ProductCard";
+
+vi.mock("@/features/wishlist/ui/WishlistButton", () => ({
+  WishlistButton: () => null,
+}));
 
 const baseProduct: Product = {
   id: "p1",
