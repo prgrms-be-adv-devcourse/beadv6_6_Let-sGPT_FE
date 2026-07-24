@@ -21,8 +21,10 @@ export function ChatComposer({
   onCancel,
 }: ChatComposerProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const wasBusyRef = useRef(false);
-  const restoreFocusRef = useRef(false);
+  const normalizedLength = value.trim().length;
+  const isTooLong = normalizedLength > maxLength;
+  const canSubmit = normalizedLength > 0 && !isTooLong;
+  const showCancel = busy && !canSubmit;
 
   useEffect(() => {
     const textArea = textAreaRef.current;
@@ -32,16 +34,6 @@ export function ChatComposer({
     textArea.style.height = "0px";
     textArea.style.height = `${Math.max(48, Math.min(textArea.scrollHeight, 160))}px`;
   }, [value]);
-
-  useEffect(() => {
-    if (wasBusyRef.current && !busy && restoreFocusRef.current) {
-      textAreaRef.current?.focus({ preventScroll: true });
-    }
-    if (!busy) {
-      restoreFocusRef.current = false;
-    }
-    wasBusyRef.current = busy;
-  }, [busy]);
 
   useEffect(() => {
     if (!busy) {
@@ -59,29 +51,31 @@ export function ChatComposer({
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!busy && value.trim()) {
+    if (canSubmit) {
       send();
     }
   }
 
   function cancel() {
     onCancel();
+    textAreaRef.current?.focus({ preventScroll: true });
   }
 
   function send() {
     const coarsePointer =
       typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
-    restoreFocusRef.current = !coarsePointer;
+    onSubmit();
     if (coarsePointer) {
       textAreaRef.current?.blur();
+    } else {
+      textAreaRef.current?.focus({ preventScroll: true });
     }
-    onSubmit();
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
-      if (!busy && value.trim()) {
+      if (canSubmit) {
         send();
       }
     }
@@ -102,16 +96,14 @@ export function ChatComposer({
           id="admin-chat-message"
           rows={1}
           value={value}
-          maxLength={maxLength}
-          readOnly={busy}
-          aria-busy={busy}
+          aria-invalid={isTooLong}
           aria-describedby="admin-chat-message-help"
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="일반 개념이나 글쓰기를 물어보세요"
-          className="max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-1 py-3 text-[15px] leading-6 outline-none placeholder:text-muted-foreground read-only:cursor-wait read-only:opacity-60"
+          placeholder="운영에 필요한 지식을 물어보세요."
+          className="max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-1 py-3 text-[15px] leading-6 outline-none placeholder:text-muted-foreground"
         />
-        {busy ? (
+        {showCancel ? (
           <Button
             type="button"
             size="icon"
@@ -128,10 +120,10 @@ export function ChatComposer({
             type="submit"
             size="icon"
             className="mb-1 rounded-full"
-            disabled={!value.trim()}
-            aria-label="질문 보내기"
+            disabled={!canSubmit}
+            aria-label={busy ? "현재 답변을 중지하고 질문 보내기" : "질문 보내기"}
             aria-keyshortcuts="Enter"
-            title="질문 보내기"
+            title={busy ? "현재 답변을 중지하고 질문 보내기" : "질문 보내기"}
           >
             <ArrowUp aria-hidden="true" />
           </Button>
@@ -140,23 +132,23 @@ export function ChatComposer({
 
       <div
         id="admin-chat-message-help"
-        className="mt-2 flex flex-col gap-1 border-t pt-3 text-muted-foreground text-xs sm:flex-row sm:items-end sm:justify-between"
+        className="mt-2 flex items-end justify-between gap-3 border-t pt-3 text-muted-foreground text-xs"
       >
-        <div className="space-y-1">
-          <p className="text-foreground/70">
-            <kbd className="font-sans font-medium">Enter</kbd> 전송 ·{" "}
-            <kbd className="font-sans font-medium">Shift+Enter</kbd> 줄바꿈
-            {busy ? (
-              <>
-                {" · "}
-                <kbd className="font-sans font-medium">Esc</kbd> 중지
-              </>
-            ) : null}
-          </p>
-          <p>개인정보·내부 운영정보는 입력하지 마세요.</p>
-        </div>
-        <p className="shrink-0 tabular-nums">
-          {value.length.toLocaleString("ko-KR")} / {maxLength.toLocaleString("ko-KR")}
+        <p className="text-foreground/70">
+          <kbd className="font-sans font-medium">Enter</kbd> 전송 ·{" "}
+          <kbd className="font-sans font-medium">Shift+Enter</kbd> 줄바꿈
+          {busy ? (
+            <>
+              {" · "}
+              <kbd className="font-sans font-medium">Esc</kbd> 중지
+            </>
+          ) : null}
+        </p>
+        <p
+          className={`shrink-0 tabular-nums ${isTooLong ? "text-destructive" : ""}`}
+          aria-live="polite"
+        >
+          {normalizedLength.toLocaleString("ko-KR")} / {maxLength.toLocaleString("ko-KR")}
         </p>
       </div>
     </form>

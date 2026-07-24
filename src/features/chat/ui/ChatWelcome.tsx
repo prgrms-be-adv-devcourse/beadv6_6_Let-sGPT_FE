@@ -1,36 +1,20 @@
 import { ArrowUpRight } from "lucide-react";
 
-import { Button } from "@/shared/ui/button";
-import type { ChatCapability } from "../model/chat.schema";
-
 type ChatWelcomeProps = {
   notice: string;
-  capabilities: ChatCapability[];
   starterQuestions: string[];
   loading: boolean;
-  failed: boolean;
   busy: boolean;
-  onRetryCapabilities: () => void;
   onStarterQuestion: (question: string) => void;
 };
 
 export function ChatWelcome({
   notice,
-  capabilities,
   starterQuestions,
   loading,
-  failed,
   busy,
-  onRetryCapabilities,
   onStarterQuestion,
 }: ChatWelcomeProps) {
-  const activeLabels = capabilities
-    .filter((capability) => capability.availability === "ACTIVE")
-    .map((capability) => capability.label);
-  const plannedLabels = capabilities
-    .filter((capability) => capability.availability === "PLANNED")
-    .map((capability) => capability.label);
-
   return (
     <section className="flex flex-1 flex-col pb-10 sm:pb-14" aria-labelledby="chat-welcome-title">
       <div className="mx-auto max-w-xl text-center">
@@ -42,19 +26,8 @@ export function ChatWelcome({
 
       {loading ? (
         <p className="mt-10 text-center text-muted-foreground text-xs" role="status">
-          사용할 수 있는 기능을 확인하고 있어요.
+          질문 예시를 준비하고 있어요.
         </p>
-      ) : null}
-
-      {failed ? (
-        <div className="mt-10 flex flex-col items-center gap-3 text-center" role="alert">
-          <p className="text-muted-foreground text-sm">
-            기능 안내를 불러오지 못했지만 직접 질문할 수 있습니다.
-          </p>
-          <Button type="button" variant="outline" size="sm" onClick={onRetryCapabilities}>
-            다시 불러오기
-          </Button>
-        </div>
       ) : null}
 
       {starterQuestions.length > 0 ? (
@@ -67,7 +40,10 @@ export function ChatWelcome({
                 onClick={() => onStarterQuestion(question)}
                 className="group flex h-full w-full flex-col justify-between gap-7 px-4 py-5 text-left transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="flex w-full items-center justify-between text-muted-foreground text-xs tabular-nums">
+                <span
+                  className="flex w-full items-center justify-between text-muted-foreground text-xs tabular-nums"
+                  aria-hidden="true"
+                >
                   0{index + 1}
                   <ArrowUpRight
                     className="size-3.5 transition-colors group-hover:text-foreground"
@@ -79,20 +55,6 @@ export function ChatWelcome({
             </li>
           ))}
         </ul>
-      ) : null}
-
-      {capabilities.length > 0 ? (
-        <div className="mt-6 flex flex-col items-center justify-center gap-2 text-center text-xs sm:flex-row sm:gap-5">
-          {activeLabels.length > 0 ? (
-            <p>
-              <span className="text-muted-foreground">현재 지원</span>
-              <span className="ml-2">{activeLabels.join(" · ")}</span>
-            </p>
-          ) : null}
-          {plannedLabels.length > 0 ? (
-            <p className="text-muted-foreground">연결 예정 · {plannedLabels.join(" · ")}</p>
-          ) : null}
-        </div>
       ) : null}
     </section>
   );

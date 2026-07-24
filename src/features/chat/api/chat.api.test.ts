@@ -2,20 +2,27 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 
 import { server } from "@/mocks/server";
-import type { ChatRoute, ChatStreamEvent } from "../model/chat.schema";
-import { ChatProtocolError, streamAdminChat } from "./chat.api";
+import { type ChatStreamEvent, chatRequestSchema } from "../model/chat.schema";
+import {
+  ChatEventError,
+  ChatProtocolError,
+  getChatCapabilities,
+  streamAdminChat,
+} from "./chat.api";
 
 const encoder = new TextEncoder();
+const REQUEST_ID = "11111111-1111-4111-8111-111111111111";
+const OTHER_REQUEST_ID = "22222222-2222-4222-8222-222222222222";
 
 function sse(type: string, data: unknown, lineEnding = "\n"): string {
   return `event: ${type}${lineEnding}data: ${JSON.stringify(data)}${lineEnding}${lineEnding}`;
 }
 
-function streamResponse(chunks: Uint8Array[], contentType = "text/event-stream"): Response {
+function streamResponse(chunks: Array<string | Uint8Array>, contentType = "text/event-stream") {
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       for (const chunk of chunks) {
-        controller.enqueue(chunk);
+        controller.enqueue(typeof chunk === "string" ? encoder.encode(chunk) : chunk);
       }
       controller.close();
     },
@@ -23,207 +30,277 @@ function streamResponse(chunks: Uint8Array[], contentType = "text/event-stream")
   return new HttpResponse(stream, { headers: { "Content-Type": contentType } });
 }
 
+function directEvents(text = "엑셀은 스프레드시트 프로그램이야.") {
+  return [
+    sse("started", { requestId: REQUEST_ID }),
+    sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" }),
+    sse("status", { requestId: REQUEST_ID, stage: "GENERATING" }),
+    sse("delta", { requestId: REQUEST_ID, text }),
+    sse("done", { requestId: REQUEST_ID }),
+  ];
+}
+
+function toolEvents() {
+  return [
+    sse("started", { requestId: REQUEST_ID }),
+    sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" }),
+    sse("status", { requestId: REQUEST_ID, stage: "CALLING_TOOL" }),
+    sse("status", { requestId: REQUEST_ID, stage: "GENERATING" }),
+    sse("delta", { requestId: REQUEST_ID, text: "지난달 주문은 " }),
+    sse("delta", { requestId: REQUEST_ID, text: "총 1,284건이야." }),
+    sse("done", { requestId: REQUEST_ID }),
+  ];
+}
+
+async function collect(message = "엑셀이 뭐야?"): Promise<ChatStreamEvent[]> {
+  const events: ChatStreamEvent[] = [];
+  await streamAdminChat({ message }, (event) => events.push(event), new AbortController().signal);
+  return events;
+}
+
 describe("관리자 AI SSE API", () => {
-  const defaultContractCases = [
-    {
-      message: "엑셀 피벗 테이블을 쉽게 설명해줘",
-      route: "GENERAL_ANSWER",
-      eventTypes: ["status", "status", "delta", "done"],
-      answer: "피벗 테이블은",
-    },
-    {
-      message: "부천 날씨 알려줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "실시간 정보 도구는 아직 연결하지 않았어요.",
-    },
-    {
-      message: "오늘 주문 수 알려줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "관리자 데이터와 내부 정책 조회는 아직 연결하지 않았어요.",
-    },
-    {
-      message: "이메일을 보내줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "업무를 대신 실행하는 기능은 아직 제공하지 않아요.",
-    },
-    {
-      message: "주문 취소해줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "업무를 대신 실행하는 기능은 아직 제공하지 않아요.",
-    },
-    {
-      message: "그거 더 자세히 설명해줘",
-      route: "CLARIFICATION",
-      eventTypes: ["status", "message", "done"],
-      answer: "현재는 질문마다 독립적으로 처리하고 있어요.",
-    },
-    {
-      message: "홍길동 집 주소 알려줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "개인정보나 비밀 값을 조회하는 질문은 아직 처리하지 않아요.",
-    },
-    {
-      message: "DAU 알려줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "관리자 데이터와 내부 정책 조회는 아직 연결하지 않았어요.",
-    },
-    {
-      message: "최신 React 버전은?",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "실시간 정보 도구는 아직 연결하지 않았어요.",
-    },
-    {
-      message: "아폴로 건 확인해줘",
-      route: "UNSUPPORTED",
-      eventTypes: ["status", "message", "done"],
-      answer: "현재는 일반 개념 설명과 글쓰기 요청만 처리해요.",
-    },
-    {
-      message: "주문이 성립하는 일반적인 과정을 설명해줘",
-      route: "GENERAL_ANSWER",
-      eventTypes: ["status", "status", "delta", "done"],
-      answer: "복잡한 업무는",
-    },
-  ] satisfies Array<{
-    message: string;
-    route: ChatRoute;
-    eventTypes: ChatStreamEvent["type"][];
-    answer: string;
-  }>;
+  it("새 Spring AI capability 계약을 검증한다", async () => {
+    const capabilities = await getChatCapabilities();
 
-  it.each(defaultContractCases)("기본 MSW가 '$message'를 실제 최소 계약에 맞게 처리한다", async ({
-    message,
-    route,
-    eventTypes,
-    answer,
-  }) => {
-    const events: ChatStreamEvent[] = [];
-
-    await streamAdminChat({ message }, (event) => events.push(event), new AbortController().signal);
-
-    expect(events.map((event) => event.type)).toEqual(eventTypes);
-    expect(events[0]).toEqual({
-      type: "status",
-      data: { stage: "ROUTING", route: null },
-    });
-    expect(events.at(-1)).toEqual({ type: "done", data: { route } });
-    expect(
-      events
-        .flatMap((event) =>
-          event.type === "message" || event.type === "delta" ? [event.data.text] : [],
-        )
-        .join(""),
-    ).toContain(answer);
-  });
-
-  it("CRLF·heartbeat와 바이트 경계로 분할된 이벤트를 순서대로 읽는다", async () => {
-    const payload = [
-      ": heartbeat\r\n\r\n",
-      sse("status", { stage: "ROUTING", route: null }, "\r\n"),
-      sse("delta", { text: "안녕하세요" }, "\r\n"),
-      sse("done", { route: "GENERAL_ANSWER" }, "\r\n"),
-    ].join("");
-    const bytes = encoder.encode(payload);
-    const first = Math.min(17, bytes.length);
-    const second = Math.min(first + 23, bytes.length);
-    server.use(
-      http.post("*/api/v1/ai/chats", () =>
-        streamResponse([bytes.slice(0, first), bytes.slice(first, second), bytes.slice(second)]),
-      ),
-    );
-    const events: ChatStreamEvent[] = [];
-
-    await streamAdminChat(
-      { message: "인사해줘" },
-      (event) => events.push(event),
-      new AbortController().signal,
-    );
-
-    expect(events).toEqual([
-      { type: "status", data: { stage: "ROUTING", route: null } },
-      { type: "delta", data: { text: "안녕하세요" } },
-      { type: "done", data: { route: "GENERAL_ANSWER" } },
+    expect(capabilities.prototype).toBe(false);
+    expect(capabilities.capabilities.map((capability) => capability.type)).toEqual([
+      "ORDER",
+      "PAYMENT_REFUND",
+      "SETTLEMENT",
+      "MEMBER",
+      "PRODUCT_DROP",
+      "RELIABILITY",
+      "OPERATIONS",
+      "WEATHER",
+      "WEB_SEARCH",
+      "GENERAL",
     ]);
   });
 
-  it("done 없이 EOF가 오면 이미 받은 delta를 전달한 뒤 프로토콜 실패로 처리한다", async () => {
-    server.use(
-      http.post("*/api/v1/ai/chats", () =>
-        streamResponse([encoder.encode(sse("delta", { text: "부분 답변" }))]),
-      ),
-    );
-    const events: ChatStreamEvent[] = [];
+  it("일반 질문의 자연어 delta 응답을 전달한다", async () => {
+    server.use(http.post("*/api/v1/ai/chats", () => streamResponse(directEvents())));
 
-    const request = streamAdminChat(
-      { message: "질문" },
-      (event) => events.push(event),
-      new AbortController().signal,
-    );
+    const events = await collect();
 
-    await expect(request).rejects.toBeInstanceOf(ChatProtocolError);
-    expect(events).toEqual([{ type: "delta", data: { text: "부분 답변" } }]);
+    expect(events.map((event) => event.type)).toEqual([
+      "started",
+      "status",
+      "status",
+      "delta",
+      "done",
+    ]);
   });
 
-  it("error 이벤트를 전달하고 서버 오류 정보로 실패한다", async () => {
-    const payload = {
-      code: "INFERENCE_UNAVAILABLE",
-      message: "답변 모델에 연결하지 못했습니다.",
-      retryable: true,
-      partial: false,
-    };
+  it("첫 질문은 문맥 없이 보내고 후속 질문은 직전 완료 문맥을 함께 보낸다", async () => {
+    const requests: unknown[] = [];
     server.use(
-      http.post("*/api/v1/ai/chats", () => streamResponse([encoder.encode(sse("error", payload))])),
-    );
-    const events: ChatStreamEvent[] = [];
-
-    const request = streamAdminChat(
-      { message: "질문" },
-      (event) => events.push(event),
-      new AbortController().signal,
-    );
-
-    await expect(request).rejects.toMatchObject({ payload });
-    expect(events).toEqual([{ type: "error", data: payload }]);
-  });
-
-  it("AbortSignal이 취소되면 대기 중인 스트림 읽기를 중단한다", async () => {
-    server.use(
-      http.post("*/api/v1/ai/chats", () => {
-        const stream = new ReadableStream<Uint8Array>({
-          start(controller) {
-            controller.enqueue(encoder.encode(sse("status", { stage: "GENERATING" })));
-          },
-        });
-        return new HttpResponse(stream, {
-          headers: { "Content-Type": "text/event-stream" },
-        });
+      http.post("*/api/v1/ai/chats", async ({ request }) => {
+        requests.push(await request.json());
+        return streamResponse(directEvents());
       }),
     );
-    const controller = new AbortController();
-    const request = streamAdminChat({ message: "긴 답변" }, () => undefined, controller.signal);
 
-    await Promise.resolve();
-    controller.abort(new DOMException("테스트 취소", "AbortError"));
+    await streamAdminChat(
+      { message: "이번 달 주문 수는?" },
+      () => undefined,
+      new AbortController().signal,
+    );
+    await streamAdminChat(
+      {
+        message: "그럼 지난달은?",
+        previousTurn: {
+          question: "이번 달 주문 수는?",
+          answer: "이번 달 주문은 총 10건이야.",
+        },
+      },
+      () => undefined,
+      new AbortController().signal,
+    );
 
-    await expect(request).rejects.toMatchObject({ name: "AbortError" });
+    expect(requests).toEqual([
+      { message: "이번 달 주문 수는?" },
+      {
+        message: "그럼 지난달은?",
+        previousTurn: {
+          question: "이번 달 주문 수는?",
+          answer: "이번 달 주문은 총 10건이야.",
+        },
+      },
+    ]);
   });
 
-  it("SSE가 아닌 Content-Type을 거부한다", async () => {
+  it("직전 질문과 답변이 모두 있는 strict 문맥만 허용한다", () => {
+    expect(
+      chatRequestSchema.safeParse({
+        message: "후속 질문",
+        previousTurn: { question: "이전 질문" },
+      }).success,
+    ).toBe(false);
+    expect(
+      chatRequestSchema.safeParse({
+        message: "후속 질문",
+        previousTurn: { question: "이전 질문", answer: "이전 답변", tokenCount: 10 },
+      }).success,
+    ).toBe(false);
+    expect(
+      chatRequestSchema.safeParse({
+        message: "후속 질문",
+        previousTurn: { question: "가".repeat(301), answer: "이전 답변" },
+      }).success,
+    ).toBe(false);
+    expect(
+      chatRequestSchema.safeParse({
+        message: "후속 질문",
+        previousTurn: { question: "이전 질문", answer: "가".repeat(801) },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("먼저 확인된 답과 최종 답의 여러 delta를 같은 자연어 답변으로 전달한다", async () => {
+    server.use(http.post("*/api/v1/ai/chats", () => streamResponse(toolEvents())));
+
+    const events = await collect("지난달 주문 수를 알려줘");
+
+    expect(events.map((event) => event.type)).toEqual([
+      "started",
+      "status",
+      "status",
+      "status",
+      "delta",
+      "delta",
+      "done",
+    ]);
+    expect(
+      events
+        .filter(
+          (event): event is Extract<ChatStreamEvent, { type: "delta" }> => event.type === "delta",
+        )
+        .map((event) => event.data.text)
+        .join(""),
+    ).toBe("지난달 주문은 총 1,284건이야.");
+  });
+
+  it("네트워크 chunk 경계와 heartbeat comment에 영향받지 않는다", async () => {
+    const payload = [
+      sse("started", { requestId: REQUEST_ID }, "\r\n"),
+      ": keep-alive\r\n\r\n",
+      ...directEvents().slice(1),
+    ].join("");
+    const bytes = encoder.encode(payload);
     server.use(
       http.post("*/api/v1/ai/chats", () =>
-        HttpResponse.json({ message: "stream contract mismatch" }),
+        streamResponse([bytes.slice(0, 17), bytes.slice(17, 63), bytes.slice(63)]),
       ),
     );
 
+    const events = await collect();
+
+    expect(events.at(-1)?.type).toBe("done");
+  });
+
+  it("서버 error 이벤트를 먼저 전달하고 ChatEventError로 종료한다", async () => {
+    server.use(
+      http.post("*/api/v1/ai/chats", () =>
+        streamResponse([
+          sse("started", { requestId: REQUEST_ID }),
+          sse("error", {
+            requestId: REQUEST_ID,
+            code: "CHAT_BUSY",
+            message: "요청이 많아. 잠시 후 다시 시도해 줘.",
+            retryable: true,
+            partial: false,
+          }),
+        ]),
+      ),
+    );
+    const events: ChatStreamEvent[] = [];
+
     await expect(
-      streamAdminChat({ message: "질문" }, () => undefined, new AbortController().signal),
-    ).rejects.toBeInstanceOf(ChatProtocolError);
+      streamAdminChat(
+        { message: "질문" },
+        (event) => events.push(event),
+        new AbortController().signal,
+      ),
+    ).rejects.toBeInstanceOf(ChatEventError);
+    expect(events.map((event) => event.type)).toEqual(["started", "error"]);
+  });
+
+  it.each([
+    {
+      name: "started 이전 status",
+      events: [sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" }), ...directEvents()],
+    },
+    {
+      name: "서로 다른 requestId",
+      events: [
+        sse("started", { requestId: REQUEST_ID }),
+        sse("status", { requestId: OTHER_REQUEST_ID, stage: "ANALYZING" }),
+      ],
+    },
+    {
+      name: "GENERATING으로 바로 시작",
+      events: [
+        sse("started", { requestId: REQUEST_ID }),
+        sse("status", { requestId: REQUEST_ID, stage: "GENERATING" }),
+      ],
+    },
+    {
+      name: "구형 message 이벤트",
+      events: [
+        sse("started", { requestId: REQUEST_ID }),
+        sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" }),
+        sse("status", { requestId: REQUEST_ID, stage: "GENERATING" }),
+        sse("message", { requestId: REQUEST_ID, text: "구형 응답" }),
+      ],
+    },
+    {
+      name: "자연어 답변 없는 done",
+      events: [
+        sse("started", { requestId: REQUEST_ID }),
+        sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" }),
+        sse("status", { requestId: REQUEST_ID, stage: "GENERATING" }),
+        sse("done", { requestId: REQUEST_ID }),
+      ],
+    },
+  ])("$name 응답을 계약 오류로 거부한다", async ({ events }) => {
+    server.use(http.post("*/api/v1/ai/chats", () => streamResponse([events.join("")])));
+
+    await expect(collect()).rejects.toBeInstanceOf(ChatProtocolError);
+  });
+
+  it("done 없는 EOF는 전달된 답변을 보존한 채 실패한다", async () => {
+    server.use(http.post("*/api/v1/ai/chats", () => streamResponse(directEvents().slice(0, -1))));
+    const events: ChatStreamEvent[] = [];
+
+    await expect(
+      streamAdminChat(
+        { message: "질문" },
+        (event) => events.push(event),
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow("완료 이벤트 없이");
+    expect(events.some((event) => event.type === "delta")).toBe(true);
+  });
+
+  it("terminal 뒤 같은 chunk의 추가 이벤트를 거부한다", async () => {
+    server.use(
+      http.post("*/api/v1/ai/chats", () =>
+        streamResponse([
+          [...directEvents(), sse("status", { requestId: REQUEST_ID, stage: "ANALYZING" })].join(
+            "",
+          ),
+        ]),
+      ),
+    );
+
+    await expect(collect()).rejects.toThrow("종료 이벤트 뒤");
+  });
+
+  it("SSE가 아닌 응답은 읽지 않는다", async () => {
+    server.use(
+      http.post("*/api/v1/ai/chats", () => streamResponse(directEvents(), "application/json")),
+    );
+
+    await expect(collect()).rejects.toThrow("SSE 형식");
   });
 });

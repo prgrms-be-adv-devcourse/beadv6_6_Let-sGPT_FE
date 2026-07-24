@@ -11,7 +11,7 @@ function AdminChatbotPage() {
   return (
     <AdminShell
       title="AI 어시스턴트"
-      description="안전한 범위에서 질문을 분류하고 답변하는 관리자용 AI"
+      description="운영과 관리에 필요한 질문을 자연스럽게 답하는 관리자용 AI"
     >
       <AdminChatbot />
     </AdminShell>
