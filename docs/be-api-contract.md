@@ -126,8 +126,44 @@
 - `SettlementBatchResultSummary{ batchId, settlementMonth, batchType: LOAD_PAYMENT|LOAD_REFUND|SETTLEMENT_RUN|SETTLEMENT_RETRY, status: READY|RUNNING|COMPLETED|FAILED, startedAt, endedAt, totalOrderCount, totalSellerCount, totalSettlementAmount, failReason, createdAt }`
 - 정산식: `netSettlement = paidAmount - feeAmount - refundAmount`. 월 1일 03:00 배치(전월).
 
+## ai (관리자 AI 어시스턴트)
+| M·P | 경로 | 요청 | 응답 | 인증 |
+|---|---|---|---|---|
+| GET | `/api/v1/ai/chats/capabilities` | - | `ChatCapabilitiesResponse` | ADMIN |
+| POST | `/api/v1/ai/chats` | `{message, previousTurn?}` + `Accept: text/event-stream` | SSE | ADMIN |
+
+- `ChatCapabilitiesResponse{ prototype, maxMessageLength, notice, capabilities:Capability[] }`
+- `Capability{ type, label, description, availability:ACTIVE|PLANNED|UNAVAILABLE, sampleQuestions:string[] }`
+- `type` 순서: `ORDER | PAYMENT_REFUND | SETTLEMENT | MEMBER | PRODUCT_DROP | RELIABILITY | OPERATIONS | WEATHER | WEB_SEARCH | GENERAL`.
+- POST `message`는 trim 이후 1~2,000자다.
+- `previousTurn{ question, answer }`는 선택값이지만 포함할 때는 두 필드가 모두 있어야 하는 strict 객체다. `question`은 trim 이후 1~300자, `answer`는 1~800자다.
+- FE는 새 질문을 보낼 때 가장 최근 `completed` 턴 하나만 찾아 질문과 답변을 `previousTurn`으로 전달한다. `running`, `failed`, `cancelled` 턴은 문맥으로 사용하지 않으며 첫 질문에는 필드 자체를 보내지 않는다.
+- 답변 생성 중에도 입력창은 편집할 수 있다. 새 질문을 전송하면 현재 `AbortController`를 먼저 중단하고 새 요청을 즉시 시작하며, 취소된 턴의 늦은 이벤트는 무시한다.
+- 재시도는 처음 실패하거나 취소된 턴에 저장된 요청을 그대로 재사용하므로, 이후 다른 답변이 완료돼도 원래 `previousTurn`이 바뀌지 않는다.
+- 8K 추론 컨텍스트를 보호하기 위해 FE도 길이를 제한하고 유니코드 문자열을 중간에서 깨뜨리지 않지만, 신뢰 경계는 BE이므로 BE가 길이와 객체 계약을 다시 검증한다. 대화와 요청 문맥은 화면에 별도 표시하지 않는다.
+- 모든 데이터 이벤트는 같은 UUID `requestId`를 포함하며 `started`가 반드시 첫 이벤트다. heartbeat comment(`: ...`)는 데이터 이벤트가 아니므로 무시한다.
+- 백엔드는 내부 도구 선택·구조화 결과를 SSE로 노출하지 않고, 화면에 필요한 상태와 자연어 답변만 전송한다.
+- named SSE 이벤트:
+  - `started`: `{requestId}`
+  - `status`: `{requestId, stage:ANALYZING|CALLING_TOOL|GENERATING}`
+  - `delta`: `{requestId, text}`
+  - `done`: `{requestId}` — 정상 완료의 유일한 terminal 이벤트
+  - `error`: `{requestId, code, message, retryable, partial}` — 실패 terminal 이벤트
+- 정상 이벤트 순서:
+  - 일반 질문: `started → ANALYZING → GENERATING → delta+ → done`
+  - 도구 사용 질문: `started → ANALYZING → CALLING_TOOL → GENERATING → delta+ → done`
+  - 실행기 포화·보안 정책 거절 등 답변 전 실패: `started → error`
+- 자연어 답변은 `delta`만 사용하며 여러 번 전송할 수 있다.
+- 먼저 완료된 경량 도구 결과와 후속 내부 데이터의 최종 답변은 상태를 되돌리지 않고 같은 `delta` 스트림에 순서대로 누적한다.
+- `done`과 `error`는 상호 배타적이다. 자연어 조각 전달 뒤 실패하면 `error.partial:true`이며 FE는 먼저 받은 문장을 보존한다.
+- POST와 Authorization 헤더가 필요하므로 네이티브 `EventSource` 대신 fetch `ReadableStream`을 사용한다. 사용자 중지는 `AbortController`로 즉시 로컬 종료한다.
+- terminal 이후 이벤트, requestId 변경, 상태 역행, 자연어 답변 없는 `done`은 프로토콜 오류로 처리한다.
+
 ## FE 통합 메모
-- 모든 인증 호출은 `shared/api/http.ts`의 `apiFetch`(Authorization 자동 주입 + Idempotency-Key + Zod 경계 검증).
+- JSON 인증 호출은 `shared/api/http.ts`의 `apiFetch`, SSE는 같은 인증·401 복구 경계를 적용하는 `apiFetchResponse`를 사용한다.
+- OpenAPI 코드젠은 HTTP 경로와 JSON 스키마의 기준이다. named SSE의 시간 순서는 `features/chat/model/chat.schema.ts`의 Zod 스키마와 `features/chat/api/chat.api.ts`의 작은 상태 검증기로 보완한다. 생성 파일 `shared/api/generated/schema.d.ts`는 직접 수정하지 않는다.
+- 화면은 카드·라우트·도구 입력 등 내부 구조를 표시하지 않고 자연어 답변만 스트리밍한다. `OPENAT AI` 오른쪽에는 처리 중 스피너와 실제 경과 시간을 표시하며, 상태 문구·자동 스크롤·중단·재시도를 제공한다.
+- capabilities는 최대 질문 길이와 추천 질문 구성에만 사용하며 전체 기능 목록은 화면에 노출하지 않는다.
 - BE 엔드포인트 현황(2026-06-29 BE 코드 대조 완료): 드롭 조회(목록·상세·`/me`)·카테고리 조회·판매자 본인 상품/드롭 목록(`products/me`·`drops/me`)·이미지 업로드·판매자 토큰(`/seller/token`)·지갑 잔액 **전부 BE 구현 확인**. 과거 "미구현" 표기는 모두 낡았던 것(원인은 대개 FE 경로 오타 또는 게이트웨이 라우트 오인).
 - 유일한 잔여 갭은 **판매자명(sellerName)** — 엔드포인트·DTO 필드는 있으나 BE 가 store명 이벤트 전파 전엔 `null` 가능(로컬은 시드로 채움). FE 는 `sellerName` 을 nullish 로 이미 처리하므로 추가 작업 없음. 인덱스 = `product/docs/FE_API_REQUESTS.md`.
 - **상품 이미지 업로드/조회는 presign 방식**(2026-07-21 컷오버, 구 multipart 제거). presign 발급은 `/products/**` 라 **판매자 스토어 범위 토큰** 필요(회원 토큰이면 게이트웨이 401/403) → `presignProductImage`가 `SellerAuth` 부착, S3 직전송 PUT은 `uploadToS3`(Authorization 미부착 — 붙이면 서명 불일치). 조회 GET은 공개(302 리다이렉트).
