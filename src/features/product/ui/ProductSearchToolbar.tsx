@@ -97,7 +97,6 @@ export function ProductSearchToolbar({
             submitSearch();
           }}
         >
-          <span className="shrink-0 text-muted-foreground text-xs">가격</span>
           <Input
             aria-label="최소 가격"
             type="number"
@@ -107,7 +106,7 @@ export function ProductSearchToolbar({
             value={startPrice}
             onChange={(event) => setStartPrice(event.target.value)}
             placeholder="최소 가격"
-            className="w-[8.25rem] tabular-nums"
+            className="w-[6.25rem] tabular-nums"
           />
           <span aria-hidden="true" className="text-muted-foreground">
             ~
@@ -121,9 +120,9 @@ export function ProductSearchToolbar({
             value={endPrice}
             onChange={(event) => setEndPrice(event.target.value)}
             placeholder="최대 가격"
-            className="w-[8.25rem] tabular-nums"
+            className="w-[6.25rem] tabular-nums"
           />
-          <div className="relative min-w-[12rem] flex-1 xl:w-56">
+          <div className="relative min-w-[12rem] flex-1 xl:w-[25rem]">
             <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground" />
             <Input
               aria-label="자연어 검색"
